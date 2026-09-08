@@ -1,5 +1,6 @@
 import { generateChatResponse } from '../providers/gemini.provider.js';
 import { buildSystemInstruction } from '../prompts/systemPrompt.js';
+import { toChatResponse } from '../schemas/chatResponse.schema.js';
 
 function buildUserContent(input) {
   if (input.type === 'text') {
@@ -39,13 +40,6 @@ export async function processChat(payload) {
 
   const result = await generateChatResponse(systemInstruction, contents);
 
-  return {
-    reply_text: result.reply_text ?? '',
-    emotion_label: result.emotion_label ?? null,
-    should_speak: Boolean(result.should_speak),
-    action: result.action?.type ? result.action : { type: 'none', params: {} },
-    new_facts: Array.isArray(result.new_facts) ? result.new_facts : [],
-    point_event: result.point_event ?? null,
-  };
+  return toChatResponse(result);
 }
 

@@ -1,9 +1,17 @@
 import { z } from 'zod';
 
+export const RECENT_HISTORY_LIMIT = 20;
+
+const isoDateWithTimezone =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:\d{2})$/;
+
 const historyMessageSchema = z.object({
   role: z.enum(['user', 'tomo']),
   text: z.string(),
-  ts: z.string().min(1),
+  ts: z
+    .string()
+    .regex(isoDateWithTimezone, 'ts phải là ISO 8601 kèm timezone')
+    .refine((value) => !Number.isNaN(Date.parse(value)), 'ts phải là thời điểm hợp lệ'),
 });
 
 export const chatRequestSchema = z
@@ -20,7 +28,9 @@ export const chatRequestSchema = z
       }),
     ]),
     memory_md: z.string(),
-    recent_history: z.array(historyMessageSchema),
+    recent_history: z
+      .array(historyMessageSchema)
+      .max(RECENT_HISTORY_LIMIT, `recent_history tối đa ${RECENT_HISTORY_LIMIT} tin nhắn`),
     session_context: z.object({
       focus_session_active: z.boolean(),
       evolution_stage: z.number().int().positive(),
