@@ -60,7 +60,7 @@ Endpoint chính cho mọi lượt hội thoại (text hoặc voice), dùng chung
 | `input.audio_base64` | string (base64) | Chỉ khi `type = "audio"` | Dữ liệu audio đã encode base64, clip ngắn (push-to-talk) |
 | `input.audio_mime` | string | Chỉ khi `type = "audio"` | MIME type của audio, vd `"audio/m4a"` |
 | `memory_md` | string | ✅ | Toàn bộ nội dung file `memory.md` hiện tại của client. Truyền `""` nếu chưa có memory nào |
-| `recent_history` | array\<HistoryMessage\> | ✅ | N tin nhắn gần nhất (xem mục 5.1). Truyền `[]` nếu là tin đầu tiên |
+| `recent_history` | array\<HistoryMessage\> | ✅ | 20 tin nhắn gần nhất (quyết định G4, xem mục 5.1). Truyền `[]` nếu là tin đầu tiên |
 | `session_context.focus_session_active` | boolean | ✅ | Có đang trong phiên focus mode hay không |
 | `session_context.evolution_stage` | number | ✅ | Stage tiến hoá hiện tại của Tomo |
 | `session_context.evolution_points` | number | ✅ | Điểm tiến hoá hiện tại |
@@ -118,7 +118,7 @@ Endpoint chính cho mọi lượt hội thoại (text hoặc voice), dùng chung
   "should_speak": false,
   "action": {
     "type": "set_animation",
-    "params": { "animation_state": "an_ủi" }
+    "params": { "animation_state": "comfort" }
   },
   "new_facts": ["Vừa thi trượt một kỳ thi quan trọng"],
   "point_event": "emotional_share"
@@ -202,7 +202,7 @@ Gọi **sau khi** người dùng bấm [Có] xác nhận muốn nghe nhạc gợ
 
 | `action.type` | `params` | Ai thực thi | Tính năng |
 |---|---|---|---|
-| `set_animation` | `{ "animation_state": string }` — vd `"vui"`, `"buồn"`, `"an_ủi"`, `"tập_trung"`, `"ăn_mừng"`, `"chờ"` (danh sách cụ thể do FE định nghĩa animation tương ứng) | Client | F2/F3 |
+| `set_animation` | `{ "animation_state": string }` — giá trị FE nội bộ: `idle`, `happy`, `comfort`, `focused`, `speaking`, `celebrating` (quyết định G5, xem mapping ở `FE_architecture.md`) | Client | F2/F3 |
 | `start_focus_session` | `{ "duration_minutes": number \| null }` (`null` = không giới hạn, đến khi người dùng tự kết thúc) | Client | F6 |
 | `end_focus_session` | `{}` | Client | F6 |
 | `suggest_music` | `{ "mood": string }` — client hiện nút [Có]/[Thôi], nếu đồng ý dùng `mood` này gọi `/music-suggest` | Client | F7 |
@@ -213,7 +213,7 @@ Gọi **sau khi** người dùng bấm [Có] xác nhận muốn nghe nhạc gợ
 
 `"vui"` \| `"buồn"` \| `"stress"` \| `"trung_lập"` \| `null`
 
-Danh sách có thể mở rộng khi cần thêm animation mới — cập nhật đồng thời ở đây và ở `FE_architecture.md` (nơi sẽ định nghĩa mapping `emotion_label` → animation cụ thể, hiện chưa có trong tài liệu FE).
+Danh sách đã chốt cho MVP (quyết định G6): `vui`, `buồn`, `stress`, `trung_lập` hoặc `null`. Mapping sang `animation_state` nội bộ của client được định nghĩa tại `FE_architecture.md` mục 2.1 và `src/constants/animationMapping.js`; nhãn không hợp lệ hoặc bị thiếu phải fallback về `idle`.
 
 ### 5.4 `point_event` (enum)
 

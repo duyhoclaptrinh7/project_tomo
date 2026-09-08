@@ -78,7 +78,7 @@ MVP cần trả lời được các giả thuyết kinh doanh/sản phẩm sau:
 | Mục | Nội dung |
 |---|---|
 | Tiền điều kiện | Người dùng mới cài app, mở lần đầu |
-| Luồng chính | 1. Màn hình chào giới thiệu Tomo (animation chào). 2. Tomo "tự giới thiệu" bằng hội thoại, hỏi tên người dùng. 3. Người dùng nhập tên (và có thể đặt biệt danh cho Tomo). 4. App giải thích *tại sao* cần từng quyền, lần lượt xin: mic → overlay → notification. 5. Hoàn tất → vào màn hình chính, Tomo chào bằng tên người dùng. |
+| Luồng chính | 1. Màn hình chào giới thiệu Tomo (animation chào). 2. Client hiển thị scripted local dialogue để hỏi tên người dùng; không gọi `/chat` trong bước này. 3. Người dùng nhập tên (và có thể đặt biệt danh cho Tomo); client ghi fact khởi tạo vào `memory.md`. 4. App giải thích *tại sao* cần từng quyền, lần lượt xin: mic → overlay → notification. 5. Hoàn tất → vào màn hình chính, Tomo chào bằng tên người dùng. |
 | Luồng thay thế | 3a. Người dùng từ chối một quyền → app ghi nhận, tiếp tục, tính năng liên quan bị tắt và có nút bật lại trong Cài đặt. |
 | Kết quả | Hồ sơ người dùng khởi tạo; quyền đã cấp được lưu; memory ghi nhận fact đầu tiên (tên). |
 

@@ -1,0 +1,42 @@
+{
+  "name": "tomo-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@react-navigation/native": "^7.3.18",
+    "@react-navigation/native-stack": "^7.18.10",
+    "axios": "^1.20.0",
+    "expo": "~57.0.20",
+    "expo-asset": "~57.0.16",
+    "expo-audio": "~57.0.4",
+    "expo-dev-client": "~57.0.18",
+    "expo-file-system": "~57.0.6",
+    "expo-speech": "~57.0.2",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.3",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "zustand": "^5.0.15"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "bundle": "expo export --platform android --output-dir dist"
+  },
+  "private": true,
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@react-native/eslint-config": "^0.87.1",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6"
+  }
+}
