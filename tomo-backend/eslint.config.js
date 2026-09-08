@@ -21,4 +21,13 @@ export default [
       'prefer-const': 'error',
     },
   },
+  {
+    files: ['test/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.vitest,
+      },
+    },
+  },
 ];

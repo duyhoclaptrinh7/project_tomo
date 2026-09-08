@@ -15,6 +15,7 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().trim().min(1, 'GEMINI_API_KEY là bắt buộc'),
   GEMINI_MODEL: z.string().trim().min(1).default('gemini-3.6-flash'),
   GEMINI_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
+  GEMINI_MAX_OUTPUT_RETRIES: z.coerce.number().int().min(0).max(1).default(1),
 });
 
 const parsed = envSchema.safeParse(process.env);
