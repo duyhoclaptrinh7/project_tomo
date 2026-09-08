@@ -2,6 +2,10 @@
 
 > Roadmap cấp phase/milestone cho bản MVP. Thứ tự phase bám theo "Đề xuất thứ tự build MVP" (M1–M5) trong `tomo-mvp-requirements.md` mục 7, bổ sung Phase 0 (foundation) ở đầu và Phase 7 (hardening) ở cuối. Các gap G1–G8 tham chiếu từ `doc_ana.md` mục 4.
 
+> **Quy ước Acceptance**: Mỗi phase ghi rõ ai kiểm tra gì.
+> - 🤖 **Agent** — coding agent tự chạy/xác nhận được (lệnh CLI, request API, đọc log, kiểm tra file output, lint, build).
+> - 👤 **Con người** — cần mắt/tay người thật trên thiết bị thật hoặc đánh giá chủ quan (UI/UX, tương tác vật lý, chất lượng ngôn ngữ tự nhiên, hành vi trên máy OEM).
+
 ---
 
 ## Phase 0 — Foundation & chốt các câu hỏi mở
@@ -29,13 +33,21 @@ Tasks:
 - Scaffold `tomo-app/` (Expo Dev Client, navigation, Zustand, axios, eslint/prettier) theo đúng cấu trúc `FE_architecture.md`
 - Kiểm tra Node LTS hiện hành; cấu hình `config/env.js` fail-fast khi thiếu `GEMINI_API_KEY`
 - Build thử Dev Client lên máy Android thật (xác nhận pipeline native sẵn sàng cho module Kotlin sau này)
-- Chốt các gap rẻ, sớm: G4 (giá trị N của `recent_history`), G5 + G6 (bảng mapping `emotion_label` → `animation_state` → asset), G8 (onboarding hỏi tên: qua `/chat` hay scripted local)
+- [x] Chốt các gap rẻ, sớm: G4 (`RECENT_HISTORY_LIMIT = 20`), G5 + G6 (mapping ASCII với fallback `idle`, enum MVP giữ 4 nhãn + null), G8 (onboarding hỏi tên bằng scripted local)
 - Spike nhỏ: xác nhận Google Search grounding hoạt động với `@google/genai` (phục vụ F7)
 
 Acceptance:
-- Backend khởi động được, báo lỗi rõ khi thiếu `GEMINI_API_KEY`
-- App build và chạy được trên máy Android thật qua Dev Client (màn trống)
-- G4/G5/G6/G8 có quyết định bằng văn bản (cập nhật `API_SPEC.md`/tài liệu liên quan nếu cần)
+
+🤖 Agent:
+- `npm start` (hoặc `node src/index.js`) backend thành công, không crash
+- Xoá `GEMINI_API_KEY` khỏi `.env` → backend in lỗi rõ ràng và thoát (exit code ≠ 0)
+- Chạy `npx expo prebuild` không lỗi; `eslint` + `prettier --check` pass cả 2 repo
+- Spike Search grounding: chạy script gọi `@google/genai` với `tools: [{ googleSearch: {} }]` → nhận response hợp lệ (log ra terminal)
+- G4/G5/G6/G8 có quyết định bằng văn bản — kiểm tra diff/nội dung `API_SPEC.md` chứa giá trị đã chốt
+
+👤 Con người:
+- Build Dev Client lên máy Android thật → app mở được (màn trống, không crash) — cần thiết bị vật lý
+- Đọc lại các quyết định G4/G5/G6/G8 đã ghi — xác nhận đúng ý định sản phẩm
 
 ---
 
@@ -66,9 +78,17 @@ Tasks:
 - `middlewares/errorHandler.js` với mapping 400/502/500 đúng format lỗi chuẩn
 
 Acceptance:
-- Gọi `POST /chat` (text) trả về JSON đúng đủ 6 field theo `API_SPEC.md` mục 3.2
-- Request thiếu field → `400 INVALID_INPUT`; giả lập Gemini lỗi → `502 GEMINI_ERROR`
-- `action` luôn hợp lệ (ít nhất `type: "none"`); guardrail tự hại hoạt động khi thử input nguy hiểm
+
+🤖 Agent:
+- `curl POST /chat` với body text hợp lệ → response JSON chứa đủ 6 field (`reply_text`, `emotion_label`, `action`, `new_facts`, `should_speak`, `point_event`) đúng kiểu dữ liệu
+- Request thiếu `message` hoặc `input.type` → HTTP 400 với `{ error: "INVALID_INPUT", ... }`
+- Mock/stub Gemini trả lỗi → HTTP 502 với `{ error: "GEMINI_ERROR", ... }`
+- `action` luôn có ít nhất `{ type: "none" }` khi Gemini không đề xuất action
+- `eslint` pass toàn bộ backend code
+
+👤 Con người:
+- Gửi vài câu chat thật (tiếng Việt, nhiều ngữ cảnh) → đọc `reply_text` kiểm tra giọng văn Tomo tự nhiên, đúng persona
+- Gửi input nguy hiểm (ám chỉ tự hại) → xác nhận guardrail kích hoạt, Tomo phản hồi phù hợp và nhạy cảm (đánh giá chủ quan, không thể tự động)
 
 ---
 
@@ -101,8 +121,30 @@ Tasks:
 - Xử lý lỗi nhẹ nhàng (mất mạng/`GEMINI_ERROR`), giữ nguyên tin nhắn để gửi lại
 
 Acceptance:
-- Gửi text → hiển thị `reply_text`, animation đổi theo `set_animation`, history/memory được ghi file
-- Chia sẻ cảm xúc → +1 điểm + toast; mất mạng → báo lỗi nhẹ nhàng, tin nhắn không mất
+
+🤖 Agent:
+- `npx expo start` không lỗi; `eslint` pass toàn bộ FE code
+- Sau khi gửi 1 tin nhắn qua API, kiểm tra file `memory.md` và `chat_history.jsonl` tồn tại và có nội dung mới (đọc file bằng script)
+- Request mang đủ 3 field `memory_md`, `recent_history`, `session_context` — kiểm tra bằng log backend hoặc mock server
+- `actionExecutor` nhận `point_event = "emotional_share"` → `useAppStore` tăng điểm +1 (kiểm tra bằng unit test hoặc log state)
+- Tắt wifi/backend → gọi API → hàm xử lý lỗi trả đúng trạng thái, tin nhắn không bị xoá khỏi state
+
+👤 Con người:
+- Mở app trên thiết bị → gõ tin nhắn → `reply_text` hiển thị trong bubble, avatar đổi animation theo `set_animation` — kiểm tra trực quan
+- Chia sẻ cảm xúc → thấy toast "+1 kết nối 💙" hiện trên màn hình — kiểm tra trực quan
+- Tắt wifi → gửi tin → thấy thông báo lỗi nhẹ nhàng (không crash, tin nhắn vẫn còn) — kiểm tra trực quan
+- Chat vài lượt → Tomo nhắc lại thông tin đã lưu từ `memory.md` (cá nhân hoá) — đánh giá chủ quan
+
+---
+
+## Phase 3 — Onboarding & Overlay (M2)
+
+Goal:
+Luồng thiết lập lần đầu hoàn chỉnh; Tomo hiện diện dạng chat-head overlay và mở được màn chat nổi. Tương ứng M2 (F1, F2).
+
+Dependencies:
+Phase 2; quyết định G8 đã chốt ở Phase 0.
+
 Cần đọc — tài liệu:
 - [tomo-mvp-requirements.md](tomo-mvp-requirements.md) — F1/UC-01 (onboarding nhiều bước), F2/UC-02, UC-03 (tương tác chat-head), UC-04 (chat từ overlay) + yêu cầu phi chức năng F2
 - [FE_architecture.md](FE_architecture.md) — mục 1.1, 1.2 (kiến trúc overlay + `OverlayChatActivity`), 2.1 (phần `android/` + `OnboardingScreen`), 2.2, 4.2 (JS ↔ native bridge)
@@ -119,18 +161,6 @@ Cần đọc — code:
 - `tomo-app/src/constants/config.js` — cấu hình chung
 - `tomo-app/app.config.js` — khai báo quyền SYSTEM_ALERT_WINDOW, RECORD_AUDIO, POST_NOTIFICATIONS
 
-- Hội thoại có cá nhân hoá từ `memory.md` (Tomo nhắc lại thông tin đã lưu)
-
----
-
-## Phase 3 — Onboarding & Overlay (M2)
-
-Goal:
-Luồng thiết lập lần đầu hoàn chỉnh; Tomo hiện diện dạng chat-head overlay và mở được màn chat nổi. Tương ứng M2 (F1, F2).
-
-Dependencies:
-Phase 2; quyết định G8 đã chốt ở Phase 0.
-
 Tasks:
 - `OnboardingScreen` một màn nhiều bước (chào → nhập tên → xin lần lượt quyền mic → overlay → notification), từ chối quyền vẫn cho tiếp tục; set cờ `onboarded`
 - `App.jsx` chọn stack Onboarding/Main theo cờ `onboarded`; `SettingsScreen` bật/tắt overlay + nút dẫn lại Settings hệ thống
@@ -138,9 +168,21 @@ Tasks:
 - `OverlayChatActivity.kt` (activity RN nền trong suốt) hiển thị màn chat nổi khi tap chat-head — dùng chung stack chat với app chính (cùng một lịch sử)
 
 Acceptance:
-- Cài mới → onboarding đầy đủ → vào chat; từ chối quyền không chặn luồng; mở lại app vào thẳng chat
-- Overlay hiện đè lên app khác, kéo-thả/đóng đúng; tap mở màn chat nổi chat được (text), đồng bộ lịch sử với app
-- Trạng thái bật/tắt overlay lưu trong `app_state.json`
+
+🤖 Agent:
+- `npx expo prebuild` + Gradle build thành công (không lỗi compile Kotlin)
+- `eslint` pass toàn bộ code JS/TS mới
+- `app_state.json` chứa `"onboarded": true` sau khi chạy qua luồng onboarding — kiểm tra bằng script đọc file
+- Cờ overlay bật/tắt được lưu đúng trong `app_state.json` — kiểm tra bằng script đọc file
+- Code Kotlin compile không warning nghiêm trọng (kiểm tra Gradle build log)
+
+👤 Con người:
+- Cài mới (xoá data) → mở app → đi qua toàn bộ onboarding → vào chat — kiểm tra luồng mượt, UI rõ ràng
+- Từ chối quyền overlay → vẫn vào được chat (không bị chặn) — kiểm tra trên thiết bị
+- Mở lại app → vào thẳng chat (không hiện onboarding lại) — kiểm tra trên thiết bị
+- Overlay hiện đè lên app khác (Chrome, YouTube...), kéo-thả mượt, hút cạnh đúng, kéo vào vùng × để đóng — kiểm tra tương tác vật lý
+- Tap chat-head → mở màn chat nổi → chat text được, lịch sử đồng bộ với app chính — kiểm tra trực quan
+- Settings: bật/tắt overlay → trạng thái phản ánh đúng — kiểm tra trên thiết bị
 
 ---
 
@@ -172,8 +214,19 @@ Tasks:
 - Animation "mở miệng" trong lúc TTS phát (cả chat-head lẫn avatar trong app); lỗi → giữ file ghi âm để gửi lại
 
 Acceptance:
-- Nhấn-giữ mic, nói tiếng Việt → Tomo trả lời đúng nội dung, phát TTS; cảm xúc chỉ suy từ nội dung lời nói
-- Audio lỗi/không hiểu → Tomo hỏi lại; mất mạng → giữ bản ghi để gửi lại
+
+🤖 Agent:
+- `curl POST /chat` với `input.type = "audio"` + `audio_base64` hợp lệ → response JSON đủ 6 field, `should_speak = true`
+- `curl POST /chat` với `input.type = "audio"` nhưng thiếu `audio_base64` → HTTP 400 `INVALID_INPUT`
+- `eslint` pass toàn bộ code mới (backend + FE)
+- Gradle build thành công sau khi sửa Kotlin (nếu có thay đổi native)
+
+👤 Con người:
+- Nhấn-giữ mic, nói tiếng Việt → Tomo trả lời đúng nội dung, TTS phát giọng Việt rõ ràng — kiểm tra trên thiết bị
+- Animation "mở miệng" chạy đúng lúc TTS phát (cả avatar trong app và chat-head overlay) — kiểm tra trực quan
+- Nói câu mơ hồ/không rõ → Tomo hỏi lại thay vì bịa nội dung — đánh giá chủ quan
+- Mất mạng giữa chừng → bản ghi âm được giữ, có thể gửi lại — kiểm tra trên thiết bị
+- Cảm xúc Tomo phản hồi suy từ nội dung lời nói (không phải giọng điệu) — đánh giá chủ quan
 
 ---
 
@@ -206,6 +259,32 @@ Tasks:
 - Hướng dẫn người dùng tắt tối ưu pin cho app (giảm rủi ro OEM giết service)
 
 Acceptance:
+
+🤖 Agent:
+- `curl POST /chat` với message "7h sáng mai đặt báo thức" → response chứa `action.type = "propose_schedule"` với đủ field `title`, `time` — kiểm tra JSON
+- Backend retry: mock Gemini trả `propose_schedule` thiếu `time` → retry nội bộ thành công hoặc trả fallback hợp lệ
+- `eslint` pass; Gradle build thành công
+- `session_context.focus_session_active` được gửi đúng trong request khi phiên focus đang bật — kiểm tra log backend
+- `app_state.json` cập nhật `focus_session_active` đúng khi bắt đầu/kết thúc phiên — kiểm tra bằng script đọc file
+
+👤 Con người:
+- Nói "7h sáng mai đặt báo thức" → thẻ xác nhận hiện lên → bấm xác nhận → app Đồng hồ mở với giờ điền sẵn — kiểm tra trên thiết bị
+- Tương tự với sự kiện lịch → app Calendar mở điền sẵn — kiểm tra trên thiết bị
+- Bắt đầu phiên focus → avatar đổi animation (app + chat-head) — kiểm tra trực quan
+- Trong phiên focus, bật màn hình → nhắc xuất hiện nhưng không quá dày (≤ 1 lần/5 phút) — kiểm tra trên thiết bị, cần đợi thời gian thực
+- Nói "làm xong rồi" → animation ăn mừng + toast +1 điểm — kiểm tra trực quan
+- Lịch trình được ghi vào memory → lượt chat sau Tomo nhắc lại — đánh giá chủ quan
+
+---
+
+## Phase 6 — Cảm xúc & tiến hoá: nhạc + màn tiến độ + hoàn thiện memory (M5)
+
+Goal:
+Gợi ý nhạc theo mood qua YouTube; hệ thống tiến hoá đầy đủ với màn "Hành trình của Tomo"; quản lý memory. Tương ứng M5 (F7, F8, F4 hoàn thiện).
+
+Dependencies:
+Phase 2 (điểm tiến hoá đã cộng), Phase 1; spike Search grounding ở Phase 0 đã xác nhận khả dụng.
+
 Cần đọc — tài liệu:
 - [tomo-mvp-requirements.md](tomo-mvp-requirements.md) — F7/UC-12 (gợi ý nhạc), F8/UC-13 (tiến hoá + màn tiến độ), F4/UC-06 + UC-07 (quản lý memory), quyết định #1 (nguồn nhạc), #11 (mốc điểm)
 - [API_SPEC.md](API_SPEC.md) — mục 4 (toàn bộ hợp đồng `/music-suggest`), 5.2 (`suggest_music`), 5.4, mục 2 (format lỗi, `found:false` vẫn là 200)
@@ -218,19 +297,6 @@ Cần đọc — code:
 - Backend (từ Phase 1, làm mẫu cho pipeline mới): `src/routes/chat.route.js`, `src/controllers/chat.controller.js`, `src/services/chat.service.js`, `src/providers/gemini.provider.js`, `src/schemas/chatRequest.schema.js`, `src/middlewares/errorHandler.js`, `src/app.js` (mount `music.route.js`)
 - FE (từ Phase 2–5): `src/actions/actionExecutor.js`, `src/services/api/chatApi.js` (mẫu cho `musicApi.js`), `src/hooks/useChat.js`, `src/screens/ChatScreen.jsx` (thêm icon header mở `EvolutionScreen`), `src/store/useAppStore.js` (điểm/stage), `src/services/storage/memoryStorage.js` (đọc/xoá memory), `src/components/TomoAvatar.jsx`, `src/constants/config.js`
 
-- "7h sáng mai đặt báo thức" → thẻ xác nhận → app Đồng hồ mở điền sẵn; tương tự sự kiện lịch; lịch trình được ghi vào memory
-- Phiên focus: animation đổi (app + chat-head), bật màn hình → nhắc trong giới hạn tần suất; "làm xong rồi" → chúc mừng + +1 điểm
-
----
-
-## Phase 6 — Cảm xúc & tiến hoá: nhạc + màn tiến độ + hoàn thiện memory (M5)
-
-Goal:
-Gợi ý nhạc theo mood qua YouTube; hệ thống tiến hoá đầy đủ với màn "Hành trình của Tomo"; quản lý memory. Tương ứng M5 (F7, F8, F4 hoàn thiện).
-
-Dependencies:
-Phase 2 (điểm tiến hoá đã cộng), Phase 1; spike Search grounding ở Phase 0 đã xác nhận khả dụng.
-
 Tasks:
 - Backend: `POST /music-suggest` với Search grounding, `found:false` vẫn trả 200
 - `actionExecutor`: `suggest_music` → nút [Có]/[Thôi] → `musicApi` → mở link YouTube, retry tối đa 2 lần khi lỗi mở link
@@ -239,7 +305,34 @@ Tasks:
 - Tích hợp asset thật (3 bộ ngoại hình + bộ animation theo mapping G5) thay placeholder
 
 Acceptance:
-- Tomo đề xuất nhạc → [Có] → mở đúng link YouTube; `found:false` → thông báo nhẹ nhàng, không mở Intent
+
+🤖 Agent:
+- `curl POST /music-suggest` → response JSON chứa `found`, `title`, `url` (hoặc `found: false` với message thân thiện) — HTTP 200 cả hai trường hợp
+- `curl POST /music-suggest` với query quá ngắn/rỗng → HTTP 400 `INVALID_INPUT`
+- `eslint` pass toàn bộ code mới
+- Sau khi xoá memory qua `MemoryScreen`, file `memory.md` trống hoặc chỉ còn header — kiểm tra bằng script đọc file
+- `useAppStore` state: đạt 10 điểm → `stage` chuyển sang giá trị kế tiếp — kiểm tra bằng unit test hoặc log state
+
+👤 Con người:
+- Tomo đề xuất nhạc → bấm [Có] → mở đúng link YouTube trong trình duyệt/app YouTube — kiểm tra trên thiết bị
+- `found: false` → thông báo nhẹ nhàng, không mở Intent — kiểm tra trực quan
+- Đủ 10 điểm → cutscene tiến hoá chạy, ngoại hình Tomo đổi — kiểm tra trực quan
+- Đủ 30 điểm → cutscene thứ 2 + ngoại hình cuối cùng — kiểm tra trực quan
+- `EvolutionScreen`: hiển thị đúng stage hiện tại, điểm, stage kế tiếp — kiểm tra trực quan
+- `MemoryScreen`: xem danh sách memory → xoá 1 mục → xoá toàn bộ → hoạt động đúng — kiểm tra trên thiết bị
+- Xoá memory → chat tiếp → Tomo không nhắc lại thông tin đã xoá — đánh giá chủ quan
+- Asset thật (3 bộ ngoại hình + animation) hiển thị đẹp, đúng mapping — kiểm tra trực quan
+
+---
+
+## Phase 7 — Hardening & chuẩn bị test thật
+
+Goal:
+App đủ bền để đưa cho người dùng thật thử nghiệm các giả thuyết H1–H5; đo lường theo `tomo-mvp-requirements.md` mục 8.
+
+Dependencies:
+Phase 2–6 hoàn thành.
+
 Cần đọc — tài liệu:
 - [tomo-mvp-requirements.md](tomo-mvp-requirements.md) — toàn bộ UC-01 đến UC-13 (rà soát từng luồng thay thế), mục 2 (giả thuyết H1–H5), mục 5 (bảng khả thi/rủi ro), mục 8 (chỉ số đo lường)
 - [ARCHITECTURE.md](ARCHITECTURE.md) — mục 7 + 7.1 (bảo mật + lộ trình theo giai đoạn khi deploy)
@@ -254,18 +347,6 @@ Cần đọc — code:
 - `tomo-app/src/constants/config.js` — đổi BASE_URL sang môi trường deploy
 - `tomo-app/android/.../OverlayService.kt` + `tomo-app/android/.../FocusTrackingService.kt` — kiểm chứng trên máy OEM (Xiaomi/Oppo...)
 
-- Đủ 10/30 điểm → cutscene + đổi ngoại hình; xoá memory hoạt động và ảnh hưởng ngay đến hội thoại sau
-
----
-
-## Phase 7 — Hardening & chuẩn bị test thật
-
-Goal:
-App đủ bền để đưa cho người dùng thật thử nghiệm các giả thuyết H1–H5; đo lường theo `tomo-mvp-requirements.md` mục 8.
-
-Dependencies:
-Phase 2–6 hoàn thành.
-
 Tasks:
 - Rà soát toàn bộ luồng thay thế trong các UC (mất mạng, từ chối quyền, thời gian mơ hồ/quá khứ, link lỗi...)
 - Test trên máy OEM "khó tính" (Xiaomi/Oppo...) để kiểm chứng overlay + focus service
@@ -273,6 +354,16 @@ Tasks:
 - Đo các chỉ số MVP (tỉ lệ hoàn thành onboarding, phiên chat/ngày, phiên focus, tỉ lệ đạt stage 2, voice vs text)
 
 Acceptance:
-- Các luồng thay thế trong UC-01 đến UC-13 xử lý đúng như mô tả
-- Overlay + nhắc focus hoạt động ổn định trên ít nhất 1 máy OEM Trung Quốc
-- Bộ chỉ số mục 8 (requirements) thu thập được để đánh giá H1–H5
+
+🤖 Agent:
+- Rà soát code: mọi lệnh gọi API (`chatApi`, `musicApi`) đều có `try/catch` hoặc `.catch()` xử lý lỗi — grep code xác nhận
+- `appSecret.js` middleware hoạt động: request không có `X-App-Secret` → HTTP 401 — kiểm tra bằng `curl`
+- `eslint` pass toàn bộ codebase; Gradle build release thành công
+- Backend start với `NODE_ENV=production` không crash, log ở mức `info` (không `debug`)
+- Rà soát checklist các luồng thay thế UC-01 đến UC-13: mỗi luồng có code xử lý tương ứng — grep/đọc code xác nhận
+
+👤 Con người:
+- Test trên máy OEM Trung Quốc (Xiaomi/Oppo/Vivo): overlay hiện đúng, focus service không bị giết sau 30 phút — cần thiết bị vật lý cụ thể
+- Luồng thay thế thực tế: tắt wifi giữa chat, từ chối quyền rồi cấp lại, nói thời gian mơ hồ ("chiều mai"), link nhạc hỏng → app xử lý đúng — kiểm tra thủ công trên thiết bị
+- Đo chỉ số: yêu cầu người dùng thật (hoặc tester) dùng app 3–5 ngày, thu thập tỉ lệ hoàn thành onboarding, phiên chat/ngày, phiên focus, tỉ lệ đạt stage 2, tỉ lệ voice vs text — cần người thật sử dụng
+- Xác nhận budget alert (Gemini API) được cấu hình đúng trước khi mở rộng — kiểm tra trên Google Cloud Console

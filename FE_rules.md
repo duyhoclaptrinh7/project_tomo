@@ -125,7 +125,7 @@
 ### 5.3 Security & privacy risks
 
 - ❌ Tuyệt đối **không nhúng Gemini API key** trong client, không gọi thẳng Gemini API — mọi call AI đi qua backend (`ARCHITECTURE.md` mục 7).
-- ❌ Không gửi toàn bộ `chat_history.jsonl` lên backend — chỉ N tin nhắn gần nhất (tránh phình prompt).
+- ❌ Không gửi toàn bộ `chat_history.jsonl` lên backend — chỉ 20 tin nhắn gần nhất (`RECENT_HISTORY_LIMIT` trong `constants/config.js`).
 - ❌ Không hard-code URL backend — luôn qua `constants/config.js`.
 - ❌ Không thêm header auth/app-secret ở giai đoạn dev local hiện tại — theo đúng lộ trình bảo mật `ARCHITECTURE.md` mục 7.1.
 - ❌ Không giả định đã có quyền overlay/mic/notification — luôn kiểm tra và dẫn người dùng đến Settings khi thiếu (UC-02 luồng thay thế 2a).

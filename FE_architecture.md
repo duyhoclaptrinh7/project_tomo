@@ -103,7 +103,8 @@ tomo-app/
 │   ├── store/
 │   │   └── useAppStore.js            # Zustand: điểm tiến hoá, stage, cờ overlay bật/tắt...
 │   └── constants/
-│       └── config.js                 # BASE_URL backend, timeout, tên file local...
+│       ├── config.js                 # BASE_URL backend, timeout, tên file local, RECENT_HISTORY_LIMIT = 20
+│       └── animationMapping.js       # Mapping emotion_label → animation_state → asset placeholder
 ├── app.config.js                     # cấu hình Expo, khai báo quyền Android (SYSTEM_ALERT_WINDOW, RECORD_AUDIO...)
 ├── package.json
 └── README.md
@@ -120,6 +121,7 @@ tomo-app/
 - **`services/native/`** — lớp duy nhất gọi sang Native Module Kotlin — các phần khác của app không cần biết chi tiết bridge hoạt động thế nào.
 - **`actions/`** — hiện thực hoá cơ chế "hành động" đã thiết kế ở `ARCHITECTURE.md` mục 5: nhận `action.type` từ response backend, `switch` sang đúng hook/service (đổi animation, gọi `overlayBridge` để bật focus session, gọi Intent lịch...).
 - **`store/`** — state toàn cục cần dùng ở nhiều màn hình (điểm tiến hoá, cờ bật/tắt overlay) — dùng Zustand thay vì prop-drilling qua nhiều component.
+- **`constants/animationMapping.js`** — bảng mapping đã chốt ở G5: `vui` → `happy`, `buồn`/`stress` → `comfort`, `trung_lập`/null/không hợp lệ → `idle`. Các state khác do client chủ động đặt: `focused`, `speaking`, `celebrating`.
 
 ---
 

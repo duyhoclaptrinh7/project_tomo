@@ -1,0 +1,27 @@
+# OS and IDE files
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Node modules at root (for monorepos or accidental root installs)
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temp files
+.temp/
+.tmp/
