@@ -26,10 +26,7 @@ function buildUserContent(input) {
  * @returns {Promise<object>} Response đúng hợp đồng client.
  */
 export async function processChat(payload) {
-  const systemInstruction = buildSystemInstruction(
-    payload.memory_md,
-    payload.session_context,
-  );
+  const systemInstruction = buildSystemInstruction(payload.memory_md, payload.session_context);
 
   const history = payload.recent_history.map((message) => ({
     role: message.role === 'user' ? 'user' : 'model',
@@ -42,4 +39,3 @@ export async function processChat(payload) {
 
   return toChatResponse(result);
 }
-

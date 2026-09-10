@@ -11,14 +11,7 @@ const actionSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('set_animation'),
     params: z.object({
-      animation_state: z.enum([
-        'idle',
-        'happy',
-        'comfort',
-        'focused',
-        'speaking',
-        'celebrating',
-      ]),
+      animation_state: z.enum(['idle', 'happy', 'comfort', 'focused', 'speaking', 'celebrating']),
     }),
   }),
   z.object({
