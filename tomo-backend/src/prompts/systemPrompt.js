@@ -36,4 +36,3 @@ export function buildSystemInstruction(memoryMd, sessionContext) {
 
   return parts.join('');
 }
-

@@ -123,4 +123,3 @@ export async function generateChatResponse(systemInstruction, contents) {
 
   throw createGeminiError();
 }
-

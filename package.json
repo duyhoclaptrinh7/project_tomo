@@ -1,4 +1,17 @@
 {
   "private": true,
-  "description": "TOMO project root — code lives in tomo-backend/ and tomo-app/"
+  "description": "TOMO project root — code lives in tomo-backend/ and tomo-app/",
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-transform-flow-strip-types": "^7.29.7",
+    "@babel/preset-flow": "^7.29.7",
+    "@react-native/js-polyfills": "^0.86.3",
+    "@react-native/normalize-colors": "^0.86.3",
+    "jsdom": "^27.4.0",
+    "memoize-one": "^6.0.0",
+    "nullthrows": "^1.1.1",
+    "process": "^0.11.10",
+    "react-is": "^19.2.3",
+    "use-sync-external-store": "^1.6.0"
+  }
 }
