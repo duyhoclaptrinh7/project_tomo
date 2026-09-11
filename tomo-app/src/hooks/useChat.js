@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 import { useMemory } from './useMemory.js';
 import { sendChat } from '../services/api/chatApi.js';
@@ -14,8 +15,9 @@ import { runAction } from '../actions/actionExecutor.js';
 import { resolveAnimationState } from '../constants/animationMapping.js';
 
 /**
- * Hook quản lý luồng chat toàn diện cho Phase 2.
+ * Hook quản lý luồng chat toàn diện.
  * Điều phối memory (qua useMemory), history, action/point (qua actionExecutor) và retry.
+ * Tự động đồng bộ lịch sử khi app chuyển foreground/focus giữa main app và overlay.
  */
 export function useChat() {
   const [messages, setMessages] = useState([]);
@@ -27,10 +29,28 @@ export function useChat() {
 
   const { memoryMd, mergeFacts } = useMemory();
 
-  // Nạp 20 tin nhắn gần nhất từ chat_history.jsonl khi khởi động app
+  const reloadHistory = useCallback(async () => {
+    try {
+      const records = await readRecentHistory(20);
+      if (Array.isArray(records) && records.length > 0) {
+        const loaded = records.map((m, idx) => ({
+          id: `history-${m.ts || idx}-${idx}`,
+          role: m.role,
+          text: m.text,
+          ts: m.ts ? new Date(m.ts).getTime() : Date.now(),
+          status: 'sent',
+        }));
+        setMessages(loaded);
+      }
+    } catch {
+      // Bỏ qua lỗi đọc file history
+    }
+  }, []);
+
+  // Nạp 20 tin nhắn gần nhất từ chat_history.jsonl và đồng bộ khi app resume
   useEffect(() => {
     let isMounted = true;
-    async function loadInitialHistory() {
+    async function syncHistory() {
       try {
         const records = await readRecentHistory(20);
         if (isMounted && Array.isArray(records) && records.length > 0) {
@@ -44,12 +64,19 @@ export function useChat() {
           setMessages(loaded);
         }
       } catch {
-        // Bỏ qua lỗi đọc file history ban đầu
+        // Bỏ qua lỗi đọc file history
       }
     }
-    loadInitialHistory();
+
+    syncHistory();
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        syncHistory();
+      }
+    });
     return () => {
       isMounted = false;
+      subscription.remove();
     };
   }, []);
 
@@ -229,5 +256,6 @@ export function useChat() {
     retryMessage,
     dismissToast,
     inspectLocalFiles,
+    reloadHistory,
   };
 }

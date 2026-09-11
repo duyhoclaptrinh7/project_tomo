@@ -40,15 +40,10 @@ export async function writeAppState(state) {
   const current = await readAppState();
   const next = { ...current, ...state };
   const target = stateFile();
-  const temporary = new File(Paths.document, `${APP_STATE_FILE_NAME}.tmp`);
   try {
-    await temporary.write(JSON.stringify(next, null, 2), { encoding: 'utf8' });
-    if (target.exists) {
-      target.delete();
-    }
-    await temporary.move(target);
-  } catch {
     await target.write(JSON.stringify(next, null, 2), { encoding: 'utf8' });
+  } catch (err) {
+    console.warn('Lỗi khi lưu app_state.json:', err);
   }
   return next;
 }
