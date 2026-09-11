@@ -15,6 +15,7 @@ export const useAppStore = create((set, get) => ({
   isOverlayEnabled: false,
   isFocusSessionActive: false,
   onboarded: false,
+  isHydrated: false,
 
   /** Nạp state đã persist khi app khởi động. */
   async hydrate() {
@@ -22,6 +23,7 @@ export const useAppStore = create((set, get) => ({
     set({
       ...state,
       evolutionStage: resolveEvolutionStage(state.evolutionPoints),
+      isHydrated: true,
     });
   },
 

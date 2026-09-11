@@ -1,0 +1,61 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Bóng đổ nhẹ của nhân vật -->
+    <path
+        android:fillColor="#26000000"
+        android:pathData="M48,50 m-42,0 a42,42 0 1,0 84,0 a42,42 0 1,0 -84,0" />
+
+    <!-- Thân tròn chính của Tomo (Màu xanh chủ đạo #6B5CFF) -->
+    <path
+        android:fillColor="#6B5CFF"
+        android:pathData="M48,46 m-40,0 a40,40 0 1,0 80,0 a40,40 0 1,0 -80,0" />
+
+    <!-- Viền sáng trên đầu Tomo -->
+    <path
+        android:strokeColor="#9C90FF"
+        android:strokeWidth="2"
+        android:pathData="M24,24 A36,36 0 0,1 72,24" />
+
+    <!-- Hai má hồng phớt xinh xắn -->
+    <path
+        android:fillColor="#FF8A80"
+        android:pathData="M26,56 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <path
+        android:fillColor="#FF8A80"
+        android:pathData="M70,56 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+
+    <!-- Mắt trái (mắt tròn to đáng yêu) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M35,46 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+    <path
+        android:fillColor="#1A1A2E"
+        android:pathData="M36,46 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+    <!-- Đốm sáng lấp lánh mắt trái -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,44 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+
+    <!-- Mắt phải (mắt tròn to đáng yêu) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M61,46 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+    <path
+        android:fillColor="#1A1A2E"
+        android:pathData="M60,46 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+    <!-- Đốm sáng lấp lánh mắt phải -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M58,44 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+
+    <!-- Nụ cười cong mỉm dễ thương của Tomo (‿) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M43,54 Q48,60 53,54" />
+</vector>

@@ -11,9 +11,13 @@ globalThis.React = React;
 const Module = require('module');
 
 const mockPath = path.resolve(__dirname, 'mocks/react-native.js');
+const codegenMockPath = path.resolve(__dirname, 'mocks/codegenNativeComponent.js');
 
 const origResolveFilename = Module._resolveFilename;
 Module._resolveFilename = function (request, parent, isMain, options) {
+  if (request.includes('codegenNativeComponent')) {
+    return codegenMockPath;
+  }
   if (request === 'react-native' || request.startsWith('react-native/')) {
     return mockPath;
   }
