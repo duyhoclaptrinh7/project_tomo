@@ -8,6 +8,7 @@ export const DEFAULT_APP_STATE = Object.freeze({
   evolutionStage: 1,
   isOverlayEnabled: false,
   isFocusSessionActive: false,
+  isFocusRemindersEnabled: false,
 });
 
 function stateFile() {

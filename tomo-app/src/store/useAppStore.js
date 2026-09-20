@@ -14,6 +14,7 @@ export const useAppStore = create((set, get) => ({
   evolutionStage: 1,
   isOverlayEnabled: false,
   isFocusSessionActive: false,
+  isFocusRemindersEnabled: false,
   onboarded: false,
   isHydrated: false,
 

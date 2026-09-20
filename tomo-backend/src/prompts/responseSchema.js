@@ -37,11 +37,14 @@ export const chatResponseSchema = {
         actionVariant('start_focus_session', {
           type: Type.OBJECT,
           properties: {
-            duration_minutes: { anyOf: [{ type: Type.NUMBER }, { type: Type.NULL }] },
+            duration_minutes: {
+              anyOf: [{ type: Type.NUMBER, minimum: 1 }, { type: Type.NULL }],
+            },
           },
           required: ['duration_minutes'],
         }),
         actionVariant('end_focus_session', { type: Type.OBJECT, properties: {} }),
+        actionVariant('pause_focus_reminders', { type: Type.OBJECT, properties: {} }),
         actionVariant('suggest_music', {
           type: Type.OBJECT,
           properties: { mood: { type: Type.STRING, minLength: 1 } },

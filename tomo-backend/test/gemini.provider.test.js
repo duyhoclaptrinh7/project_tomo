@@ -75,6 +75,40 @@ describe('Gemini provider', () => {
     expect(calls).toBe(2);
   });
 
+  it('retries a schedule proposal missing datetime_iso', async () => {
+    let calls = 0;
+    await withClient(
+      {
+        models: {
+          generateContent: async () => {
+            calls += 1;
+            return {
+              text: JSON.stringify({
+                ...validPayload(),
+                action:
+                  calls === 1
+                    ? { type: 'propose_schedule', params: { title: 'Dậy sớm', type: 'alarm' } }
+                    : {
+                        type: 'propose_schedule',
+                        params: {
+                          title: 'Dậy sớm',
+                          datetime_iso: '2026-09-21T07:00:00+07:00',
+                          type: 'alarm',
+                        },
+                      },
+              }),
+            };
+          },
+        },
+      },
+      async () => {
+        const result = await generateChatResponse('prompt', []);
+        expect(result.action.params.datetime_iso).toBe('2026-09-21T07:00:00+07:00');
+      },
+    );
+    expect(calls).toBe(2);
+  });
+
   it('does not retry quota failures', async () => {
     let calls = 0;
     await expect(

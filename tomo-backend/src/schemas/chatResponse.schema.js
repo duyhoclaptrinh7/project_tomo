@@ -17,11 +17,15 @@ const actionSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('start_focus_session'),
     params: z.object({
-      duration_minutes: z.number().finite().nullable(),
+      duration_minutes: z.number().finite().positive().nullable(),
     }),
   }),
   z.object({
     type: z.literal('end_focus_session'),
+    params: z.object({}).optional(),
+  }),
+  z.object({
+    type: z.literal('pause_focus_reminders'),
     params: z.object({}).optional(),
   }),
   z.object({

@@ -62,8 +62,11 @@ Endpoint chính cho mọi lượt hội thoại (text hoặc voice), dùng chung
 | `memory_md` | string | ✅ | Toàn bộ nội dung file `memory.md` hiện tại của client. Truyền `""` nếu chưa có memory nào |
 | `recent_history` | array\<HistoryMessage\> | ✅ | 20 tin nhắn gần nhất (quyết định G4, xem mục 5.1). Truyền `[]` nếu là tin đầu tiên |
 | `session_context.focus_session_active` | boolean | ✅ | Có đang trong phiên focus mode hay không |
+| `session_context.focus_reminders_enabled` | boolean | ✅ | Phiên focus có đang cho phép nhắc khi bật màn hình hay không |
 | `session_context.evolution_stage` | number | ✅ | Stage tiến hoá hiện tại của Tomo |
 | `session_context.evolution_points` | number | ✅ | Điểm tiến hoá hiện tại |
+| `session_context.current_time_iso` | string (ISO 8601 kèm timezone) | ✅ | Thời gian hiện tại trên thiết bị, dùng để hiểu các cụm tương đối như “7h sáng mai” (G3) |
+| `session_context.timezone` | string | ✅ | Múi giờ IANA của thiết bị, ví dụ `Asia/Ho_Chi_Minh` (G3) |
 
 **Ví dụ — input dạng text:**
 ```json
@@ -79,8 +82,11 @@ Endpoint chính cho mọi lượt hội thoại (text hoặc voice), dùng chung
   ],
   "session_context": {
     "focus_session_active": false,
+    "focus_reminders_enabled": false,
     "evolution_stage": 1,
-    "evolution_points": 6
+    "evolution_points": 6,
+    "current_time_iso": "2026-09-20T14:30:00+07:00",
+    "timezone": "Asia/Ho_Chi_Minh"
   }
 }
 ```
@@ -95,7 +101,14 @@ Endpoint chính cho mọi lượt hội thoại (text hoặc voice), dùng chung
   },
   "memory_md": "…",
   "recent_history": [],
-  "session_context": { "focus_session_active": false, "evolution_stage": 1, "evolution_points": 6 }
+  "session_context": {
+    "focus_session_active": false,
+    "focus_reminders_enabled": false,
+    "evolution_stage": 1,
+    "evolution_points": 6,
+    "current_time_iso": "2026-09-20T14:30:00+07:00",
+    "timezone": "Asia/Ho_Chi_Minh"
+  }
 }
 ```
 
@@ -205,9 +218,17 @@ Gọi **sau khi** người dùng bấm [Có] xác nhận muốn nghe nhạc gợ
 | `set_animation` | `{ "animation_state": string }` — giá trị FE nội bộ: `idle`, `happy`, `comfort`, `focused`, `speaking`, `celebrating` (quyết định G5, xem mapping ở `FE_architecture.md`) | Client | F2/F3 |
 | `start_focus_session` | `{ "duration_minutes": number \| null }` (`null` = không giới hạn, đến khi người dùng tự kết thúc) | Client | F6 |
 | `end_focus_session` | `{}` | Client | F6 |
+| `pause_focus_reminders` | `{}` | Client | F6 — tắt nhắc nhưng vẫn giữ phiên focus |
 | `suggest_music` | `{ "mood": string }` — client hiện nút [Có]/[Thôi], nếu đồng ý dùng `mood` này gọi `/music-suggest` | Client | F7 |
 | `propose_schedule` | `{ "title": string, "datetime_iso": string, "type": "alarm" \| "calendar_event" }` | Client (mở Intent `AlarmClock`/`CalendarContract` tương ứng) | F5 |
 | `none` | `{}` | — | Chat thường, không có hành động |
+
+### 5.2.1 Quyết định Phase 5 cho Focus mode
+
+- **G1 — tắt nhắc/tạm dừng:** `pause_focus_reminders` tắt sự kiện nhắc nhưng giữ `focus_session_active = true`. Người dùng có thể nói “tiếp tục nhắc mình” để nhận lại `start_focus_session` trong phiên hiện tại.
+- **G2 — cache câu nhắc:** client truyền một danh sách câu tiếng Việt đã đóng gói sẵn cho foreground service khi bắt đầu phiên. Service xoay vòng danh sách và không gọi backend khi nhận `SCREEN_ON`.
+- **G3 — thời gian hiện tại:** mọi request gửi `current_time_iso` và `timezone`; Gemini phải quy đổi yêu cầu lịch tương đối thành `datetime_iso` tuyệt đối có timezone.
+- **G7 — “thỉnh thoảng hỏi”:** với phiên không giới hạn, service chỉ dùng câu “vẫn đang làm à?” sau ít nhất 30 phút và tại một lần nhắc đủ điều kiện; không đặt timer đánh thức máy riêng.
 
 ### 5.3 `emotion_label` (enum)
 

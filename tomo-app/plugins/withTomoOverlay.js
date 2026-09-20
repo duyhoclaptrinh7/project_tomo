@@ -84,6 +84,29 @@ const withOverlayManifest = (config) => {
       });
     }
 
+    const hasFocusService = mainApplication.service.some(
+      (s) => s.$ && s.$['android:name'] === '.FocusTrackingService',
+    );
+    if (!hasFocusService) {
+      mainApplication.service.push({
+        $: {
+          'android:name': '.FocusTrackingService',
+          'android:enabled': 'true',
+          'android:exported': 'false',
+          'android:foregroundServiceType': 'specialUse',
+        },
+        property: [
+          {
+            $: {
+              'android:name': 'android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE',
+              'android:value':
+                'Theo dõi bật màn hình trong phiên focus do người dùng chủ động bắt đầu',
+            },
+          },
+        ],
+      });
+    }
+
     // Khai báo OverlayChatActivity trong một task độc lập (taskAffinity riêng)
     // để không kéo theo MainActivity lên màn hình khi mở chat nổi
     if (!mainApplication.activity) mainApplication.activity = [];
@@ -192,6 +215,7 @@ const withOverlayNativeFiles = (config) => {
         'OverlayService.kt',
         'OverlayChatActivity.kt',
         'BootReceiver.kt',
+        'FocusTrackingService.kt',
       ];
       for (const file of kotlinFiles) {
         const srcPath = path.join(nativeSrcJavaDir, file);

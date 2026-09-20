@@ -26,6 +26,9 @@
     <service android:name=".OverlayService" android:enabled="true" android:exported="false" android:foregroundServiceType="specialUse">
       <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Hiển thị bong bóng nổi Tomo đồng hành trên màn hình"/>
     </service>
+    <service android:name=".FocusTrackingService" android:enabled="true" android:exported="false" android:foregroundServiceType="specialUse">
+      <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Theo dõi bật màn hình trong phiên focus do người dùng chủ động bắt đầu"/>
+    </service>
     <service android:name="expo.modules.audio.service.AudioControlsService" android:exported="false" android:foregroundServiceType="mediaPlayback">
       <intent-filter>
         <action android:name="androidx.media3.session.MediaSessionService"/>

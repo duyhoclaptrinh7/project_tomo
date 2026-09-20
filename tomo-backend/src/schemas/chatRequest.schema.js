@@ -33,8 +33,14 @@ export const chatRequestSchema = z
       .max(RECENT_HISTORY_LIMIT, `recent_history tối đa ${RECENT_HISTORY_LIMIT} tin nhắn`),
     session_context: z.object({
       focus_session_active: z.boolean(),
+      focus_reminders_enabled: z.boolean(),
       evolution_stage: z.number().int().positive(),
       evolution_points: z.number().int().nonnegative(),
+      current_time_iso: z
+        .string()
+        .regex(isoDateWithTimezone, 'current_time_iso phải là ISO 8601 kèm timezone')
+        .refine((value) => !Number.isNaN(Date.parse(value)), 'current_time_iso phải hợp lệ'),
+      timezone: z.string().trim().min(1),
     }),
   })
   .strict();

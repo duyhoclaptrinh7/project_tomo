@@ -161,14 +161,16 @@ describe('Phase 2 points and actions', () => {
     expect(useAppStore.getState().isFocusSessionActive).toBe(false);
   });
 
-  it('executes set_animation and safely ignores future actions', async () => {
+  it('executes set_animation and returns confirmation for focus actions', async () => {
     expect(
       await runAction({ type: 'set_animation', params: { animation_state: 'happy' } }),
     ).toEqual({ animationState: 'happy' });
     expect(await runAction({ type: 'set_animation', params: {} })).toEqual({
       animationState: 'idle',
     });
-    expect(await runAction({ type: 'start_focus_session', params: {} })).toEqual({});
+    expect(await runAction({ type: 'start_focus_session', params: {} })).toEqual({
+      pendingAction: { type: 'start_focus_session', params: {} },
+    });
   });
 
   it('none action produces no side effects', async () => {
@@ -191,7 +193,11 @@ describe('Phase 2 points and actions', () => {
     expect(useAppStore.getState().evolutionPoints).toBe(1);
 
     const res2 = await runAction({ type: 'end_focus_session', params: {} });
-    expect(res2).toEqual({ toast: '+1 kết nối 💙', pointAwarded: true });
+    expect(res2).toEqual({
+      animationState: 'celebrating',
+      toast: '+1 kết nối 💙',
+      pointAwarded: true,
+    });
     expect(useAppStore.getState().evolutionPoints).toBe(2);
 
     const res3 = await handlePointEvent('emotional_share');

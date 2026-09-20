@@ -13,8 +13,9 @@ import {
 import { readAppState } from '../services/storage/appStateStorage.js';
 import { readMemory } from '../services/storage/memoryStorage.js';
 import { useAppStore } from '../store/useAppStore.js';
-import { runAction } from '../actions/actionExecutor.js';
+import { confirmAction, runAction } from '../actions/actionExecutor.js';
 import { resolveAnimationState } from '../constants/animationMapping.js';
+import { getDeviceTimezone, toLocalIsoWithOffset } from '../utils/dateTime.js';
 
 /**
  * Hook quản lý luồng chat toàn diện.
@@ -25,8 +26,12 @@ export function useChat() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [animationState, setAnimationState] = useState('idle');
+  const [animationState, setAnimationState] = useState(() =>
+    useAppStore.getState().isFocusSessionActive ? 'focused' : 'idle',
+  );
   const [toast, setToast] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [isConfirmingAction, setIsConfirmingAction] = useState(false);
   const toastTimeoutRef = useRef(null);
 
   const { memoryMd, mergeFacts } = useMemory();
@@ -123,8 +128,11 @@ export function useChat() {
         const storeState = useAppStore.getState();
         const sessionContext = {
           focus_session_active: Boolean(storeState.isFocusSessionActive),
+          focus_reminders_enabled: Boolean(storeState.isFocusRemindersEnabled),
           evolution_stage: storeState.evolutionStage ?? 1,
           evolution_points: storeState.evolutionPoints ?? 0,
+          current_time_iso: toLocalIsoWithOffset(),
+          timezone: getDeviceTimezone(),
         };
 
         const payload = {
@@ -159,6 +167,9 @@ export function useChat() {
 
         if (actionResult?.toast) {
           showToast(actionResult.toast);
+        }
+        if (actionResult?.pendingAction) {
+          setPendingAction(actionResult.pendingAction);
         }
 
         setMessages((prev) => {
@@ -268,6 +279,28 @@ export function useChat() {
     [messages, deliverMessage],
   );
 
+  const confirmPendingAction = useCallback(async () => {
+    if (!pendingAction || isConfirmingAction) return;
+    setIsConfirmingAction(true);
+    setError(null);
+    try {
+      const result = await confirmAction(pendingAction);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      if (result.animationState) setAnimationState(result.animationState);
+      if (result.toast) showToast(result.toast);
+      setPendingAction(null);
+    } finally {
+      setIsConfirmingAction(false);
+    }
+  }, [isConfirmingAction, pendingAction, showToast]);
+
+  const dismissPendingAction = useCallback(() => {
+    if (!isConfirmingAction) setPendingAction(null);
+  }, [isConfirmingAction]);
+
   const inspectLocalFiles = useCallback(async () => {
     try {
       const memory = await readMemory();
@@ -303,10 +336,14 @@ export function useChat() {
     error,
     animationState,
     toast,
+    pendingAction,
+    isConfirmingAction,
     sendMessage,
     sendVoiceMessage,
     retryMessage,
     dismissToast,
+    confirmPendingAction,
+    dismissPendingAction,
     inspectLocalFiles,
     reloadHistory,
   };

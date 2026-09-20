@@ -151,6 +151,12 @@ const NativeModules = {
     stopOverlay: async () => true,
     openOverlayChat: async () => true,
     setOverlaySpeaking: async () => true,
+    setOverlayFocused: async () => true,
+    openScheduleIntent: async () => true,
+    startFocusSession: async () => true,
+    pauseFocusReminders: async () => true,
+    endFocusSession: async () => true,
+    openBatteryOptimizationSettings: async () => true,
   },
 };
 

@@ -13,7 +13,14 @@ const validBody = () => ({
   input: { type: 'text', text: 'Chào Tomo' },
   memory_md: '',
   recent_history: [],
-  session_context: { focus_session_active: false, evolution_stage: 1, evolution_points: 0 },
+  session_context: {
+    focus_session_active: false,
+    focus_reminders_enabled: false,
+    evolution_stage: 1,
+    evolution_points: 0,
+    current_time_iso: '2026-09-20T14:30:00+07:00',
+    timezone: 'Asia/Ho_Chi_Minh',
+  },
 });
 
 describe('POST /chat HTTP contract', () => {

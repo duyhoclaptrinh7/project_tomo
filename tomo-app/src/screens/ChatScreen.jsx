@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import ChatBubble from '../components/ChatBubble.jsx';
+import ActionConfirmationCard from '../components/ActionConfirmationCard.jsx';
 import MicButton from '../components/MicButton.jsx';
 import TomoAvatar from '../components/TomoAvatar.jsx';
 import { useChat } from '../hooks/useChat.js';
@@ -41,10 +42,14 @@ export default function ChatScreen({ navigation, route }) {
     error,
     animationState,
     toast,
+    pendingAction,
+    isConfirmingAction,
     sendMessage,
     sendVoiceMessage,
     retryMessage,
     dismissToast,
+    confirmPendingAction,
+    dismissPendingAction,
     inspectLocalFiles,
   } = useChat();
   const { isRecording, error: voiceError, startRecording, stopRecording } = useVoiceRecorder();
@@ -153,6 +158,12 @@ export default function ChatScreen({ navigation, route }) {
               <Text style={styles.toastText}>{toast}</Text>
             </View>
           ) : null}
+          <ActionConfirmationCard
+            action={pendingAction}
+            disabled={isConfirmingAction}
+            onCancel={dismissPendingAction}
+            onConfirm={confirmPendingAction}
+          />
 
           {/* Khung nhập tin nhắn */}
           <View style={styles.composer}>
@@ -244,6 +255,12 @@ export default function ChatScreen({ navigation, route }) {
           <Text style={styles.toastText}>{toast}</Text>
         </View>
       ) : null}
+      <ActionConfirmationCard
+        action={pendingAction}
+        disabled={isConfirmingAction}
+        onCancel={dismissPendingAction}
+        onConfirm={confirmPendingAction}
+      />
 
       <View style={styles.composer}>
         <TextInput

@@ -38,6 +38,8 @@ class OverlayService : Service() {
     private var chatHeadView: FrameLayout? = null
     private var closeTargetView: FrameLayout? = null
     private var mouthView: TextView? = null
+    private var focusView: TextView? = null
+    private var reminderView: TextView? = null
     private var mouthAnimator: ValueAnimator? = null
 
     private lateinit var chatHeadParams: WindowManager.LayoutParams
@@ -59,6 +61,18 @@ class OverlayService : Service() {
             Handler(Looper.getMainLooper()).post {
                 service.updateSpeakingAnimation(isSpeaking)
             }
+            return true
+        }
+
+        fun setFocusedState(isFocused: Boolean): Boolean {
+            val service = activeInstance ?: return false
+            Handler(Looper.getMainLooper()).post { service.updateFocusedState(isFocused) }
+            return true
+        }
+
+        fun showFocusReminder(message: String): Boolean {
+            val service = activeInstance ?: return false
+            Handler(Looper.getMainLooper()).post { service.showReminderBubble(message) }
             return true
         }
     }
@@ -250,6 +264,21 @@ class OverlayService : Service() {
                     bottomMargin = (8 * density).toInt()
                 }
             )
+
+            focusView = TextView(this@OverlayService).apply {
+                text = "🎯"
+                textSize = 13f
+                gravity = Gravity.CENTER
+                visibility = View.GONE
+            }
+            addView(
+                focusView,
+                FrameLayout.LayoutParams(
+                    (26 * density).toInt(),
+                    (26 * density).toInt(),
+                    Gravity.TOP or Gravity.END
+                )
+            )
         }
 
         setupTouchListener()
@@ -421,12 +450,67 @@ class OverlayService : Service() {
         }
     }
 
+    private fun updateFocusedState(isFocused: Boolean) {
+        focusView?.visibility = if (isFocused) View.VISIBLE else View.GONE
+    }
+
+    private fun showReminderBubble(message: String) {
+        reminderView?.let {
+            try { windowManager.removeView(it) } catch (_: Exception) {}
+        }
+        val density = resources.displayMetrics.density
+        val bubble = TextView(this).apply {
+            text = message
+            textSize = 14f
+            setTextColor(Color.parseColor("#302A55"))
+            setPadding((14 * density).toInt(), (9 * density).toInt(), (14 * density).toInt(), (9 * density).toInt())
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 16 * density
+                setColor(Color.parseColor("#FFF8DC"))
+                setStroke((1 * density).toInt(), Color.parseColor("#E4C95F"))
+            }
+        }
+        val overlayType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_PHONE
+        }
+        val params = WindowManager.LayoutParams(
+            (260 * density).toInt(),
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            overlayType,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+            y = (90 * density).toInt()
+        }
+        reminderView = bubble
+        try {
+            windowManager.addView(bubble, params)
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (reminderView === bubble) {
+                    try { windowManager.removeView(bubble) } catch (_: Exception) {}
+                    reminderView = null
+                }
+            }, 4500)
+        } catch (_: Exception) {
+            reminderView = null
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         if (activeInstance === this) activeInstance = null
         mouthAnimator?.cancel()
         mouthAnimator = null
         mouthView = null
+        focusView = null
+        reminderView?.let {
+            try { windowManager.removeView(it) } catch (_: Exception) {}
+        }
+        reminderView = null
         chatHeadView?.let {
             try {
                 windowManager.removeView(it)

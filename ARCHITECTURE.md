@@ -110,6 +110,7 @@ Backend làm bên trong: ghép **system prompt cố định** (persona Tomo, gua
 | `set_animation` | F2/F3 — đổi animation theo cảm xúc/trạng thái | Client (đổi view state) |
 | `start_focus_session` | F6 | Client (khởi động foreground service theo dõi SCREEN_ON) |
 | `end_focus_session` | F6 | Client (dừng service, chạy cutscene ăn mừng, +điểm tiến hoá) |
+| `pause_focus_reminders` | F6 | Client (giữ phiên focus nhưng tắt nhắc `SCREEN_ON`) |
 | `suggest_music` | F7 | Client hiện nút [Có]/[Thôi] → nếu đồng ý, gọi riêng `/music-suggest` |
 | `propose_schedule` | F5 | Client hiện thẻ xác nhận → nếu đồng ý, gọi Intent `AlarmClock`/`CalendarContract` |
 | `none` | Chat thường | Không có hành động |
@@ -151,6 +152,7 @@ Không dùng Android `SpeechRecognizer` để chuyển giọng nói → chữ tr
 Luồng này **không gọi Gemini mỗi lần** — hoàn toàn xử lý local để tránh tốn phí/độ trễ cho một sự kiện tần suất cao:
 - Lúc bắt đầu phiên (UC-09), có thể gọi Gemini **một lần** để sinh sẵn một danh sách câu nhắc đa dạng, cá nhân hoá theo `memory.md`, cache lại trong phiên.
 - Mỗi lần `SCREEN_ON`, foreground service chọn ngẫu nhiên 1 câu từ cache, hiển thị qua overlay/notification — không gọi API.
+- MVP Phase 5 dùng danh sách câu nhắc tiếng Việt đóng gói ở client và truyền sang service khi bắt đầu phiên; giới hạn tối đa một lần mỗi 5 phút. Phiên mở chỉ xen câu hỏi “vẫn đang làm à?” sau ít nhất 30 phút, không tạo timer đánh thức máy.
 
 ### 6.4 Gợi ý nhạc theo mood (F7, UC-12)
 Endpoint riêng `/music-suggest`, tách khỏi `/chat` vì cần bật tool khác (Google Search grounding) để giảm rủi ro Gemini bịa link YouTube:
