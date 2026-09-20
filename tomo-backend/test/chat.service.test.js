@@ -31,8 +31,11 @@ describe('chat service', () => {
       ],
       session_context: {
         focus_session_active: true,
+        focus_reminders_enabled: true,
         evolution_stage: 2,
         evolution_points: 10,
+        current_time_iso: '2026-09-20T14:30:00+07:00',
+        timezone: 'Asia/Ho_Chi_Minh',
       },
     });
 
@@ -40,7 +43,40 @@ describe('chat service', () => {
     expect(systemInstruction).toContain('Thích mèo');
     expect(systemInstruction).toContain('stage 2');
     expect(systemInstruction).toContain('phiên focus mode');
+    expect(systemInstruction).toContain('2026-09-20T14:30:00+07:00');
     expect(contents.map((item) => item.role)).toEqual(['user', 'model', 'user']);
     expect(contents.at(-1).parts[0].text).toBe('Tin mới');
+  });
+
+  it('passes raw audio to Gemini and always enables TTS for voice input', async () => {
+    generateChatResponse.mockResolvedValue({
+      reply_text: 'Tớ đã nghe thấy bạn.',
+      emotion_label: null,
+      should_speak: false,
+      action: { type: 'none' },
+      new_facts: [],
+      point_event: null,
+    });
+
+    const response = await processChat({
+      input: { type: 'audio', audio_base64: 'QUJD', audio_mime: 'audio/mp4' },
+      memory_md: '',
+      recent_history: [],
+      session_context: {
+        focus_session_active: false,
+        focus_reminders_enabled: false,
+        evolution_stage: 1,
+        evolution_points: 0,
+        current_time_iso: '2026-09-20T14:30:00+07:00',
+        timezone: 'Asia/Ho_Chi_Minh',
+      },
+    });
+
+    const [, contents] = generateChatResponse.mock.calls[0];
+    expect(contents.at(-1).parts[0].inlineData).toEqual({
+      mimeType: 'audio/mp4',
+      data: 'QUJD',
+    });
+    expect(response.should_speak).toBe(true);
   });
 });

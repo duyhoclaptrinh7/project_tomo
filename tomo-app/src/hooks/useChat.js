@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { useMemory } from './useMemory.js';
+import { useTts } from './useTts.js';
 import { sendChat } from '../services/api/chatApi.js';
+import { setOverlaySpeaking } from '../services/native/overlayBridge.js';
 import {
   appendHistoryMessage,
   readAllHistory,
@@ -11,8 +13,9 @@ import {
 import { readAppState } from '../services/storage/appStateStorage.js';
 import { readMemory } from '../services/storage/memoryStorage.js';
 import { useAppStore } from '../store/useAppStore.js';
-import { runAction } from '../actions/actionExecutor.js';
+import { confirmAction, runAction } from '../actions/actionExecutor.js';
 import { resolveAnimationState } from '../constants/animationMapping.js';
+import { getDeviceTimezone, toLocalIsoWithOffset } from '../utils/dateTime.js';
 
 /**
  * Hook quản lý luồng chat toàn diện.
@@ -23,11 +26,22 @@ export function useChat() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [animationState, setAnimationState] = useState('idle');
+  const [animationState, setAnimationState] = useState(() =>
+    useAppStore.getState().isFocusSessionActive ? 'focused' : 'idle',
+  );
   const [toast, setToast] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [isConfirmingAction, setIsConfirmingAction] = useState(false);
   const toastTimeoutRef = useRef(null);
 
   const { memoryMd, mergeFacts } = useMemory();
+  const { speak } = useTts();
+
+  useEffect(() => {
+    return () => {
+      setOverlaySpeaking(false).catch(() => undefined);
+    };
+  }, []);
 
   const reloadHistory = useCallback(async () => {
     try {
@@ -98,7 +112,7 @@ export function useChat() {
   }, []);
 
   const deliverMessage = useCallback(
-    async (messageId, text) => {
+    async (messageId, requestInput, displayText) => {
       setLoading(true);
       setError(null);
 
@@ -114,12 +128,15 @@ export function useChat() {
         const storeState = useAppStore.getState();
         const sessionContext = {
           focus_session_active: Boolean(storeState.isFocusSessionActive),
+          focus_reminders_enabled: Boolean(storeState.isFocusRemindersEnabled),
           evolution_stage: storeState.evolutionStage ?? 1,
           evolution_points: storeState.evolutionPoints ?? 0,
+          current_time_iso: toLocalIsoWithOffset(),
+          timezone: getDeviceTimezone(),
         };
 
         const payload = {
-          input: { type: 'text', text },
+          input: requestInput,
           memory_md: currentMemory,
           recent_history: recentHistory,
           session_context: sessionContext,
@@ -128,7 +145,7 @@ export function useChat() {
         const response = await sendChat(payload);
 
         const userTs = new Date().toISOString();
-        await appendHistoryMessage({ role: 'user', text, ts: userTs });
+        await appendHistoryMessage({ role: 'user', text: displayText, ts: userTs });
         if (response?.reply_text) {
           await appendHistoryMessage({
             role: 'tomo',
@@ -147,16 +164,18 @@ export function useChat() {
 
         const nextAnimation =
           actionResult?.animationState || resolveAnimationState(response?.emotion_label);
-        if (nextAnimation) {
-          setAnimationState(nextAnimation);
-        }
 
         if (actionResult?.toast) {
           showToast(actionResult.toast);
         }
+        if (actionResult?.pendingAction) {
+          setPendingAction(actionResult.pendingAction);
+        }
 
         setMessages((prev) => {
-          const updated = prev.map((m) => (m.id === messageId ? { ...m, status: 'sent' } : m));
+          const updated = prev.map((m) =>
+            m.id === messageId ? { ...m, status: 'sent', requestInput: undefined } : m,
+          );
           return [
             ...updated,
             {
@@ -168,7 +187,21 @@ export function useChat() {
             },
           ];
         });
+
+        if (response?.should_speak && response?.reply_text) {
+          setAnimationState('speaking');
+          await setOverlaySpeaking(true);
+          const spoken = await speak(response.reply_text);
+          await setOverlaySpeaking(false);
+          setAnimationState(nextAnimation || 'idle');
+          if (!spoken) {
+            setError('Tomo đã trả lời nhưng thiết bị không phát được giọng nói.');
+          }
+        } else if (nextAnimation) {
+          setAnimationState(nextAnimation);
+        }
       } catch (err) {
+        await setOverlaySpeaking(false);
         setMessages((prev) =>
           prev.map((m) => (m.id === messageId ? { ...m, status: 'failed' } : m)),
         );
@@ -181,7 +214,7 @@ export function useChat() {
         setLoading(false);
       }
     },
-    [memoryMd, mergeFacts, showToast],
+    [memoryMd, mergeFacts, showToast, speak],
   );
 
   const sendMessage = useCallback(
@@ -196,10 +229,38 @@ export function useChat() {
         text: trimmed,
         ts: Date.now(),
         status: 'pending',
+        requestInput: { type: 'text', text: trimmed },
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      await deliverMessage(id, trimmed);
+      await deliverMessage(id, userMessage.requestInput, trimmed);
+    },
+    [deliverMessage],
+  );
+
+  const sendVoiceMessage = useCallback(
+    async (recording) => {
+      if (!recording?.audioBase64 || !recording?.audioMime) return;
+
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const displayText = '🎤 Tin nhắn thoại';
+      const requestInput = {
+        type: 'audio',
+        audio_base64: recording.audioBase64,
+        audio_mime: recording.audioMime,
+      };
+      const userMessage = {
+        id,
+        role: 'user',
+        text: displayText,
+        ts: Date.now(),
+        status: 'pending',
+        requestInput,
+        audioUri: recording.uri,
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      await deliverMessage(id, requestInput, displayText);
     },
     [deliverMessage],
   );
@@ -212,10 +273,33 @@ export function useChat() {
       setMessages((prev) =>
         prev.map((m) => (m.id === messageId ? { ...m, status: 'pending' } : m)),
       );
-      await deliverMessage(messageId, target.text);
+      const requestInput = target.requestInput ?? { type: 'text', text: target.text };
+      await deliverMessage(messageId, requestInput, target.text);
     },
     [messages, deliverMessage],
   );
+
+  const confirmPendingAction = useCallback(async () => {
+    if (!pendingAction || isConfirmingAction) return;
+    setIsConfirmingAction(true);
+    setError(null);
+    try {
+      const result = await confirmAction(pendingAction);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      if (result.animationState) setAnimationState(result.animationState);
+      if (result.toast) showToast(result.toast);
+      setPendingAction(null);
+    } finally {
+      setIsConfirmingAction(false);
+    }
+  }, [isConfirmingAction, pendingAction, showToast]);
+
+  const dismissPendingAction = useCallback(() => {
+    if (!isConfirmingAction) setPendingAction(null);
+  }, [isConfirmingAction]);
 
   const inspectLocalFiles = useCallback(async () => {
     try {
@@ -252,9 +336,14 @@ export function useChat() {
     error,
     animationState,
     toast,
+    pendingAction,
+    isConfirmingAction,
     sendMessage,
+    sendVoiceMessage,
     retryMessage,
     dismissToast,
+    confirmPendingAction,
+    dismissPendingAction,
     inspectLocalFiles,
     reloadHistory,
   };

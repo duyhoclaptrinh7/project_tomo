@@ -29,6 +29,9 @@ vi.mock('expo-file-system', () => {
     async text() {
       return files.get(this.uri) ?? '';
     }
+    async base64() {
+      return files.get(this.uri) ?? '';
+    }
     async write(content, options = {}) {
       files.set(this.uri, options.append ? (files.get(this.uri) ?? '') + content : content);
     }
@@ -48,8 +51,24 @@ vi.mock('expo-file-system', () => {
 
 // Mock expo-audio
 vi.mock('expo-audio', () => ({
+  RecordingPresets: { HIGH_QUALITY: {} },
   requestRecordingPermissionsAsync: vi.fn(async () => ({ granted: true, status: 'granted' })),
   getRecordingPermissionsAsync: vi.fn(async () => ({ granted: true, status: 'granted' })),
+  setAudioModeAsync: vi.fn(async () => undefined),
+  useAudioRecorder: () => ({
+    uri: 'file:///tmp/voice.m4a',
+    prepareToRecordAsync: vi.fn(async () => undefined),
+    record: vi.fn(),
+    stop: vi.fn(async () => undefined),
+  }),
+}));
+
+vi.mock('expo-speech', () => ({
+  speak: vi.fn((text, options) => {
+    options?.onStart?.();
+    options?.onDone?.();
+  }),
+  stop: vi.fn(async () => undefined),
 }));
 
 // Mock expo-notifications
@@ -84,6 +103,7 @@ function resetStorage() {
   NativeModules.TomoNativeModule.startOverlay = vi.fn(async () => true);
   NativeModules.TomoNativeModule.stopOverlay = vi.fn(async () => true);
   NativeModules.TomoNativeModule.openOverlayChat = vi.fn(async () => true);
+  NativeModules.TomoNativeModule.setOverlaySpeaking = vi.fn(async () => true);
   vi.clearAllMocks();
 }
 

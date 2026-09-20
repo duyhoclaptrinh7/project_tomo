@@ -22,6 +22,9 @@ vi.mock('expo-file-system', () => {
     async text() {
       return files.get(this.uri) ?? '';
     }
+    async base64() {
+      return files.get(this.uri) ?? '';
+    }
     async write(content, options = {}) {
       files.set(this.uri, options.append ? (files.get(this.uri) ?? '') + content : content);
     }
@@ -38,6 +41,26 @@ vi.mock('expo-file-system', () => {
   globalThis.__tomoFiles = files;
   return { File, Paths: { document: { uri: 'file:///tmp' } }, __files: files };
 });
+
+vi.mock('expo-audio', () => ({
+  RecordingPresets: { HIGH_QUALITY: {} },
+  requestRecordingPermissionsAsync: vi.fn(async () => ({ granted: true, status: 'granted' })),
+  setAudioModeAsync: vi.fn(async () => undefined),
+  useAudioRecorder: () => ({
+    uri: 'file:///tmp/voice.m4a',
+    prepareToRecordAsync: vi.fn(async () => undefined),
+    record: vi.fn(),
+    stop: vi.fn(async () => undefined),
+  }),
+}));
+
+vi.mock('expo-speech', () => ({
+  speak: vi.fn((text, options) => {
+    options?.onStart?.();
+    options?.onDone?.();
+  }),
+  stop: vi.fn(async () => undefined),
+}));
 
 /** Mock sendChat trả về đúng hợp đồng, dùng chung cho các chat flow test. */
 const mockSendChat = vi.fn();
@@ -138,14 +161,16 @@ describe('Phase 2 points and actions', () => {
     expect(useAppStore.getState().isFocusSessionActive).toBe(false);
   });
 
-  it('executes set_animation and safely ignores future actions', async () => {
+  it('executes set_animation and returns confirmation for focus actions', async () => {
     expect(
       await runAction({ type: 'set_animation', params: { animation_state: 'happy' } }),
     ).toEqual({ animationState: 'happy' });
     expect(await runAction({ type: 'set_animation', params: {} })).toEqual({
       animationState: 'idle',
     });
-    expect(await runAction({ type: 'start_focus_session', params: {} })).toEqual({});
+    expect(await runAction({ type: 'start_focus_session', params: {} })).toEqual({
+      pendingAction: { type: 'start_focus_session', params: {} },
+    });
   });
 
   it('none action produces no side effects', async () => {
@@ -168,7 +193,11 @@ describe('Phase 2 points and actions', () => {
     expect(useAppStore.getState().evolutionPoints).toBe(1);
 
     const res2 = await runAction({ type: 'end_focus_session', params: {} });
-    expect(res2).toEqual({ toast: '+1 kết nối 💙', pointAwarded: true });
+    expect(res2).toEqual({
+      animationState: 'celebrating',
+      toast: '+1 kết nối 💙',
+      pointAwarded: true,
+    });
     expect(useAppStore.getState().evolutionPoints).toBe(2);
 
     const res3 = await handlePointEvent('emotional_share');

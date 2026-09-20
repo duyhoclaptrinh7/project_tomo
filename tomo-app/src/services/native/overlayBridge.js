@@ -86,3 +86,92 @@ export async function openOverlayChat() {
     return false;
   }
 }
+
+/**
+ * Đồng bộ animation mở/đóng miệng của chat-head với trạng thái TTS.
+ * @param {boolean} isSpeaking
+ * @returns {Promise<boolean>}
+ */
+export async function setOverlaySpeaking(isSpeaking) {
+  if (!TomoNativeModule || typeof TomoNativeModule.setOverlaySpeaking !== 'function') {
+    return false;
+  }
+  try {
+    return Boolean(await TomoNativeModule.setOverlaySpeaking(Boolean(isSpeaking)));
+  } catch (err) {
+    console.warn('Lỗi khi cập nhật animation chat-head:', err);
+    return false;
+  }
+}
+
+/** Mở app Đồng hồ/Lịch với dữ liệu đã được người dùng xác nhận. */
+export async function openScheduleIntent(schedule) {
+  if (!TomoNativeModule || typeof TomoNativeModule.openScheduleIntent !== 'function') return false;
+  try {
+    const timestamp = Date.parse(schedule?.datetime_iso);
+    if (!Number.isFinite(timestamp)) return false;
+    return Boolean(
+      await TomoNativeModule.openScheduleIntent(schedule.type, schedule.title, timestamp),
+    );
+  } catch (err) {
+    console.warn('Lỗi khi mở app Đồng hồ/Lịch:', err);
+    return false;
+  }
+}
+
+/** Khởi động foreground service theo dõi SCREEN_ON cho phiên focus. */
+export async function startFocusSession(durationMinutes, reminders) {
+  if (!TomoNativeModule || typeof TomoNativeModule.startFocusSession !== 'function') return false;
+  try {
+    return Boolean(await TomoNativeModule.startFocusSession(durationMinutes, reminders));
+  } catch (err) {
+    console.warn('Lỗi khi bắt đầu focus mode:', err);
+    return false;
+  }
+}
+
+/** Dừng hẳn phiên focus và foreground service. */
+export async function endFocusSession() {
+  if (!TomoNativeModule || typeof TomoNativeModule.endFocusSession !== 'function') return false;
+  try {
+    return Boolean(await TomoNativeModule.endFocusSession());
+  } catch (err) {
+    console.warn('Lỗi khi kết thúc focus mode:', err);
+    return false;
+  }
+}
+
+/** Tắt nhắc SCREEN_ON nhưng giữ phiên focus đang hoạt động. */
+export async function pauseFocusReminders() {
+  if (!TomoNativeModule || typeof TomoNativeModule.pauseFocusReminders !== 'function') return false;
+  try {
+    return Boolean(await TomoNativeModule.pauseFocusReminders());
+  } catch (err) {
+    console.warn('Lỗi khi tạm dừng nhắc focus:', err);
+    return false;
+  }
+}
+
+/** Đồng bộ trạng thái focused của chat-head. */
+export async function setOverlayFocused(isFocused) {
+  if (!TomoNativeModule || typeof TomoNativeModule.setOverlayFocused !== 'function') return false;
+  try {
+    return Boolean(await TomoNativeModule.setOverlayFocused(Boolean(isFocused)));
+  } catch (err) {
+    console.warn('Lỗi khi cập nhật trạng thái focus của chat-head:', err);
+    return false;
+  }
+}
+
+/** Mở cài đặt tối ưu pin để người dùng cho phép service chạy ổn định hơn. */
+export async function openBatteryOptimizationSettings() {
+  if (!TomoNativeModule || typeof TomoNativeModule.openBatteryOptimizationSettings !== 'function') {
+    return false;
+  }
+  try {
+    return Boolean(await TomoNativeModule.openBatteryOptimizationSettings());
+  } catch (err) {
+    console.warn('Lỗi khi mở cài đặt pin:', err);
+    return false;
+  }
+}

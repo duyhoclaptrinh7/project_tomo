@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 const LABELS = {
@@ -11,9 +12,22 @@ const LABELS = {
 
 /** Placeholder asset cho Phase 2; asset thật và cutscene thuộc Phase 6. */
 export default function TomoAvatar({ animationState = 'idle' }) {
+  const [isMouthOpen, setIsMouthOpen] = useState(false);
+
+  useEffect(() => {
+    if (animationState !== 'speaking') {
+      return undefined;
+    }
+
+    const timer = setInterval(() => setIsMouthOpen((value) => !value), 220);
+    return () => clearInterval(timer);
+  }, [animationState]);
+
+  const face = animationState === 'speaking' && isMouthOpen ? '◕○◕' : '◕‿◕';
+
   return (
     <View style={styles.avatar}>
-      <Text style={styles.face}>◕‿◕</Text>
+      <Text style={styles.face}>{face}</Text>
       <Text style={styles.label}>{LABELS[animationState] ?? LABELS.idle}</Text>
     </View>
   );

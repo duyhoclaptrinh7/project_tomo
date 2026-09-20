@@ -16,6 +16,7 @@ import * as Notifications from 'expo-notifications';
 
 import {
   isOverlayPermissionGranted,
+  openBatteryOptimizationSettings,
   openOverlaySettings,
   startOverlay,
   stopOverlay,
@@ -159,6 +160,16 @@ export default function SettingsScreen({ navigation }) {
     await openOverlaySettings();
   };
 
+  const handleOpenBatterySettings = async () => {
+    const opened = await openBatteryOptimizationSettings();
+    if (!opened) {
+      Alert.alert(
+        'Chỉ có trên bản Android đầy đủ',
+        'Hãy chạy development build/APK để mở cài đặt tối ưu pin.',
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -208,6 +219,21 @@ export default function SettingsScreen({ navigation }) {
               </Pressable>
             </View>
           )}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Focus mode chạy nền</Text>
+          <Text style={styles.settingDescription}>
+            Một số máy Xiaomi, Oppo, Vivo hoặc Samsung có thể tự dừng phiên focus. Bạn có thể cho
+            phép Tomo chạy nền trong phần tối ưu pin của Android.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleOpenBatterySettings}
+            style={({ pressed }) => [styles.batteryButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.batteryButtonText}>Mở cài đặt tối ưu pin</Text>
+          </Pressable>
         </View>
 
         {/* Nhóm Trạng thái quyền */}
@@ -358,6 +384,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#873800',
   },
+  batteryButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#ede9fe',
+    borderRadius: 8,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  batteryButtonText: { color: '#5b21b6', fontSize: 13, fontWeight: '700' },
   refreshButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
