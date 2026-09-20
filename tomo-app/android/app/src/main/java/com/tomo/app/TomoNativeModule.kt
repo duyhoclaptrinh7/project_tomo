@@ -122,4 +122,14 @@ class TomoNativeModule(reactContext: ReactApplicationContext) : ReactContextBase
             promise.reject("ERR_OPEN_CHAT", "Không thể mở overlay chat activity: ${e.message}", e)
         }
     }
+
+    /** Đồng bộ trạng thái TTS với animation miệng của chat-head nếu overlay đang chạy. */
+    @ReactMethod
+    fun setOverlaySpeaking(isSpeaking: Boolean, promise: Promise) {
+        try {
+            promise.resolve(OverlayService.setSpeakingState(isSpeaking))
+        } catch (e: Exception) {
+            promise.reject("ERR_OVERLAY_ANIMATION", "Không thể cập nhật animation chat-head: ${e.message}", e)
+        }
+    }
 }

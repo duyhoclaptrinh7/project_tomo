@@ -150,6 +150,7 @@ const NativeModules = {
     startOverlay: async () => true,
     stopOverlay: async () => true,
     openOverlayChat: async () => true,
+    setOverlaySpeaking: async () => true,
   },
 };
 

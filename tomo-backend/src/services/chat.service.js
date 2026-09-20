@@ -36,6 +36,12 @@ export async function processChat(payload) {
   const contents = [...history, buildUserContent(payload.input)];
 
   const result = await generateChatResponse(systemInstruction, contents);
+  const response = toChatResponse(result);
 
-  return toChatResponse(result);
+  // Voice push-to-talk luôn nhận cả text lẫn TTS; text input vẫn tôn trọng quyết định của Gemini.
+  if (payload.input.type === 'audio') {
+    response.should_speak = true;
+  }
+
+  return response;
 }

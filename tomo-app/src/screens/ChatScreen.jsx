@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 
 import ChatBubble from '../components/ChatBubble.jsx';
+import MicButton from '../components/MicButton.jsx';
 import TomoAvatar from '../components/TomoAvatar.jsx';
 import { useChat } from '../hooks/useChat.js';
+import { useVoiceRecorder } from '../hooks/useVoiceRecorder.js';
 import { useAppStore } from '../store/useAppStore.js';
 
 /**
@@ -40,11 +42,14 @@ export default function ChatScreen({ navigation, route }) {
     animationState,
     toast,
     sendMessage,
+    sendVoiceMessage,
     retryMessage,
     dismissToast,
     inspectLocalFiles,
   } = useChat();
+  const { isRecording, error: voiceError, startRecording, stopRecording } = useVoiceRecorder();
   const listRef = useRef(null);
+  const recordingStartRef = useRef(null);
 
   useEffect(() => {
     if (toast) {
@@ -59,6 +64,22 @@ export default function ChatScreen({ navigation, route }) {
     await sendMessage(text);
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
   }, [draft, sendMessage]);
+
+  const handleMicPressIn = useCallback(() => {
+    recordingStartRef.current = startRecording();
+  }, [startRecording]);
+
+  const handleMicPressOut = useCallback(async () => {
+    const started = await recordingStartRef.current;
+    recordingStartRef.current = null;
+    if (!started) return;
+
+    const recording = await stopRecording();
+    if (!recording) return;
+
+    await sendVoiceMessage(recording);
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
+  }, [sendVoiceMessage, stopRecording]);
 
   const handleOpenSettings = () => {
     navigation?.navigate?.('Settings');
@@ -126,6 +147,7 @@ export default function ChatScreen({ navigation, route }) {
           />
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
+          {voiceError ? <Text style={styles.error}>{voiceError}</Text> : null}
           {toast ? (
             <View style={styles.toast}>
               <Text style={styles.toastText}>{toast}</Text>
@@ -144,6 +166,12 @@ export default function ChatScreen({ navigation, route }) {
               multiline
               placeholder="Nhắn cho Tomo..."
               style={styles.input}
+            />
+            <MicButton
+              disabled={loading}
+              isRecording={isRecording}
+              onPressIn={handleMicPressIn}
+              onPressOut={handleMicPressOut}
             />
             <Pressable
               accessibilityRole="button"
@@ -210,6 +238,7 @@ export default function ChatScreen({ navigation, route }) {
       />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {voiceError ? <Text style={styles.error}>{voiceError}</Text> : null}
       {toast ? (
         <View style={styles.toast}>
           <Text style={styles.toastText}>{toast}</Text>
@@ -225,6 +254,12 @@ export default function ChatScreen({ navigation, route }) {
           multiline
           placeholder="Nhắn cho Tomo..."
           style={styles.input}
+        />
+        <MicButton
+          disabled={loading}
+          isRecording={isRecording}
+          onPressIn={handleMicPressIn}
+          onPressOut={handleMicPressOut}
         />
         <Pressable
           accessibilityRole="button"

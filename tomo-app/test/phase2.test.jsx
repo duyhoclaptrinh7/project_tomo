@@ -22,6 +22,9 @@ vi.mock('expo-file-system', () => {
     async text() {
       return files.get(this.uri) ?? '';
     }
+    async base64() {
+      return files.get(this.uri) ?? '';
+    }
     async write(content, options = {}) {
       files.set(this.uri, options.append ? (files.get(this.uri) ?? '') + content : content);
     }
@@ -38,6 +41,26 @@ vi.mock('expo-file-system', () => {
   globalThis.__tomoFiles = files;
   return { File, Paths: { document: { uri: 'file:///tmp' } }, __files: files };
 });
+
+vi.mock('expo-audio', () => ({
+  RecordingPresets: { HIGH_QUALITY: {} },
+  requestRecordingPermissionsAsync: vi.fn(async () => ({ granted: true, status: 'granted' })),
+  setAudioModeAsync: vi.fn(async () => undefined),
+  useAudioRecorder: () => ({
+    uri: 'file:///tmp/voice.m4a',
+    prepareToRecordAsync: vi.fn(async () => undefined),
+    record: vi.fn(),
+    stop: vi.fn(async () => undefined),
+  }),
+}));
+
+vi.mock('expo-speech', () => ({
+  speak: vi.fn((text, options) => {
+    options?.onStart?.();
+    options?.onDone?.();
+  }),
+  stop: vi.fn(async () => undefined),
+}));
 
 /** Mock sendChat trả về đúng hợp đồng, dùng chung cho các chat flow test. */
 const mockSendChat = vi.fn();

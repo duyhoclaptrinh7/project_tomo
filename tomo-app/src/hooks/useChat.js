@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { useMemory } from './useMemory.js';
+import { useTts } from './useTts.js';
 import { sendChat } from '../services/api/chatApi.js';
+import { setOverlaySpeaking } from '../services/native/overlayBridge.js';
 import {
   appendHistoryMessage,
   readAllHistory,
@@ -28,6 +30,13 @@ export function useChat() {
   const toastTimeoutRef = useRef(null);
 
   const { memoryMd, mergeFacts } = useMemory();
+  const { speak } = useTts();
+
+  useEffect(() => {
+    return () => {
+      setOverlaySpeaking(false).catch(() => undefined);
+    };
+  }, []);
 
   const reloadHistory = useCallback(async () => {
     try {
@@ -98,7 +107,7 @@ export function useChat() {
   }, []);
 
   const deliverMessage = useCallback(
-    async (messageId, text) => {
+    async (messageId, requestInput, displayText) => {
       setLoading(true);
       setError(null);
 
@@ -119,7 +128,7 @@ export function useChat() {
         };
 
         const payload = {
-          input: { type: 'text', text },
+          input: requestInput,
           memory_md: currentMemory,
           recent_history: recentHistory,
           session_context: sessionContext,
@@ -128,7 +137,7 @@ export function useChat() {
         const response = await sendChat(payload);
 
         const userTs = new Date().toISOString();
-        await appendHistoryMessage({ role: 'user', text, ts: userTs });
+        await appendHistoryMessage({ role: 'user', text: displayText, ts: userTs });
         if (response?.reply_text) {
           await appendHistoryMessage({
             role: 'tomo',
@@ -147,16 +156,15 @@ export function useChat() {
 
         const nextAnimation =
           actionResult?.animationState || resolveAnimationState(response?.emotion_label);
-        if (nextAnimation) {
-          setAnimationState(nextAnimation);
-        }
 
         if (actionResult?.toast) {
           showToast(actionResult.toast);
         }
 
         setMessages((prev) => {
-          const updated = prev.map((m) => (m.id === messageId ? { ...m, status: 'sent' } : m));
+          const updated = prev.map((m) =>
+            m.id === messageId ? { ...m, status: 'sent', requestInput: undefined } : m,
+          );
           return [
             ...updated,
             {
@@ -168,7 +176,21 @@ export function useChat() {
             },
           ];
         });
+
+        if (response?.should_speak && response?.reply_text) {
+          setAnimationState('speaking');
+          await setOverlaySpeaking(true);
+          const spoken = await speak(response.reply_text);
+          await setOverlaySpeaking(false);
+          setAnimationState(nextAnimation || 'idle');
+          if (!spoken) {
+            setError('Tomo đã trả lời nhưng thiết bị không phát được giọng nói.');
+          }
+        } else if (nextAnimation) {
+          setAnimationState(nextAnimation);
+        }
       } catch (err) {
+        await setOverlaySpeaking(false);
         setMessages((prev) =>
           prev.map((m) => (m.id === messageId ? { ...m, status: 'failed' } : m)),
         );
@@ -181,7 +203,7 @@ export function useChat() {
         setLoading(false);
       }
     },
-    [memoryMd, mergeFacts, showToast],
+    [memoryMd, mergeFacts, showToast, speak],
   );
 
   const sendMessage = useCallback(
@@ -196,10 +218,38 @@ export function useChat() {
         text: trimmed,
         ts: Date.now(),
         status: 'pending',
+        requestInput: { type: 'text', text: trimmed },
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      await deliverMessage(id, trimmed);
+      await deliverMessage(id, userMessage.requestInput, trimmed);
+    },
+    [deliverMessage],
+  );
+
+  const sendVoiceMessage = useCallback(
+    async (recording) => {
+      if (!recording?.audioBase64 || !recording?.audioMime) return;
+
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const displayText = '🎤 Tin nhắn thoại';
+      const requestInput = {
+        type: 'audio',
+        audio_base64: recording.audioBase64,
+        audio_mime: recording.audioMime,
+      };
+      const userMessage = {
+        id,
+        role: 'user',
+        text: displayText,
+        ts: Date.now(),
+        status: 'pending',
+        requestInput,
+        audioUri: recording.uri,
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      await deliverMessage(id, requestInput, displayText);
     },
     [deliverMessage],
   );
@@ -212,7 +262,8 @@ export function useChat() {
       setMessages((prev) =>
         prev.map((m) => (m.id === messageId ? { ...m, status: 'pending' } : m)),
       );
-      await deliverMessage(messageId, target.text);
+      const requestInput = target.requestInput ?? { type: 'text', text: target.text };
+      await deliverMessage(messageId, requestInput, target.text);
     },
     [messages, deliverMessage],
   );
@@ -253,6 +304,7 @@ export function useChat() {
     animationState,
     toast,
     sendMessage,
+    sendVoiceMessage,
     retryMessage,
     dismissToast,
     inspectLocalFiles,

@@ -55,6 +55,38 @@ describe('POST /chat HTTP contract', () => {
     expect(typeof response.body.error.message).toBe('string');
   });
 
+  it('accepts an audio request and returns the full response contract', async () => {
+    processChat.mockResolvedValue({
+      reply_text: 'Tớ nghe thấy bạn rồi.',
+      emotion_label: null,
+      should_speak: true,
+      action: { type: 'none', params: {} },
+      new_facts: [],
+      point_event: null,
+    });
+
+    const response = await request(createApp())
+      .post('/chat')
+      .send({
+        ...validBody(),
+        input: { type: 'audio', audio_base64: 'QUJD', audio_mime: 'audio/mp4' },
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.should_speak).toBe(true);
+    expect(processChat).toHaveBeenCalledOnce();
+  });
+
+  it('rejects audio input without audio_base64', async () => {
+    const response = await request(createApp())
+      .post('/chat')
+      .send({ ...validBody(), input: { type: 'audio', audio_mime: 'audio/mp4' } });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe('INVALID_INPUT');
+    expect(processChat).not.toHaveBeenCalled();
+  });
+
   it('maps malformed JSON to INVALID_INPUT', async () => {
     const response = await request(createApp())
       .post('/chat')

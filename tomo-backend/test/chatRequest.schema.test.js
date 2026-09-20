@@ -18,6 +18,17 @@ describe('chat request schema', () => {
     expect(chatRequestSchema.safeParse(validRequest()).success).toBe(true);
   });
 
+  it('accepts valid audio and rejects missing audio data', () => {
+    const validAudio = {
+      ...validRequest(),
+      input: { type: 'audio', audio_base64: 'QUJD', audio_mime: 'audio/mp4' },
+    };
+    expect(chatRequestSchema.safeParse(validAudio).success).toBe(true);
+
+    const missingData = { ...validRequest(), input: { type: 'audio', audio_mime: 'audio/mp4' } };
+    expect(chatRequestSchema.safeParse(missingData).success).toBe(false);
+  });
+
   it.each(['', '   '])('rejects empty or whitespace-only text', (text) => {
     const request = validRequest();
     request.input.text = text;

@@ -86,3 +86,20 @@ export async function openOverlayChat() {
     return false;
   }
 }
+
+/**
+ * Đồng bộ animation mở/đóng miệng của chat-head với trạng thái TTS.
+ * @param {boolean} isSpeaking
+ * @returns {Promise<boolean>}
+ */
+export async function setOverlaySpeaking(isSpeaking) {
+  if (!TomoNativeModule || typeof TomoNativeModule.setOverlaySpeaking !== 'function') {
+    return false;
+  }
+  try {
+    return Boolean(await TomoNativeModule.setOverlaySpeaking(Boolean(isSpeaking)));
+  } catch (err) {
+    console.warn('Lỗi khi cập nhật animation chat-head:', err);
+    return false;
+  }
+}

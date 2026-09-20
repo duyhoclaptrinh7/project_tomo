@@ -13,7 +13,9 @@ import android.graphics.PixelFormat
 import android.graphics.Point
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -35,6 +37,8 @@ class OverlayService : Service() {
     private lateinit var windowManager: WindowManager
     private var chatHeadView: FrameLayout? = null
     private var closeTargetView: FrameLayout? = null
+    private var mouthView: TextView? = null
+    private var mouthAnimator: ValueAnimator? = null
 
     private lateinit var chatHeadParams: WindowManager.LayoutParams
     private lateinit var closeTargetParams: WindowManager.LayoutParams
@@ -48,12 +52,22 @@ class OverlayService : Service() {
         private const val NOTIFICATION_CHANNEL_ID = "tomo_overlay_service_channel"
         private const val NOTIFICATION_ID = 2001
         private const val SNAP_MARGIN_DP = 12
+        @Volatile private var activeInstance: OverlayService? = null
+
+        fun setSpeakingState(isSpeaking: Boolean): Boolean {
+            val service = activeInstance ?: return false
+            Handler(Looper.getMainLooper()).post {
+                service.updateSpeakingAnimation(isSpeaking)
+            }
+            return true
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
+        activeInstance = this
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         updateScreenDimensions()
 
@@ -218,6 +232,24 @@ class OverlayService : Service() {
                     FrameLayout.LayoutParams.MATCH_PARENT
                 )
             )
+
+            mouthView = TextView(this@OverlayService).apply {
+                text = "●"
+                textSize = 11f
+                setTextColor(Color.WHITE)
+                gravity = Gravity.CENTER
+                visibility = View.GONE
+            }
+            addView(
+                mouthView,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    (28 * density).toInt(),
+                    Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                ).apply {
+                    bottomMargin = (8 * density).toInt()
+                }
+            )
         }
 
         setupTouchListener()
@@ -367,8 +399,34 @@ class OverlayService : Service() {
         startActivity(intent)
     }
 
+    private fun updateSpeakingAnimation(isSpeaking: Boolean) {
+        mouthAnimator?.cancel()
+        mouthAnimator = null
+
+        if (!isSpeaking) {
+            mouthView?.visibility = View.GONE
+            mouthView?.scaleY = 1f
+            return
+        }
+
+        mouthView?.visibility = View.VISIBLE
+        mouthAnimator = ValueAnimator.ofFloat(0.35f, 1f).apply {
+            duration = 180
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            addUpdateListener { animation ->
+                mouthView?.scaleY = animation.animatedValue as Float
+            }
+            start()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        if (activeInstance === this) activeInstance = null
+        mouthAnimator?.cancel()
+        mouthAnimator = null
+        mouthView = null
         chatHeadView?.let {
             try {
                 windowManager.removeView(it)

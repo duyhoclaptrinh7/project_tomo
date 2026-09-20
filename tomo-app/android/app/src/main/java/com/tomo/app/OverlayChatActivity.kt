@@ -54,7 +54,7 @@ class OverlayChatActivity : ReactActivity() {
                 fabricEnabled
             ) {
                 override fun createRootView(): com.facebook.react.ReactRootView {
-                    return super.createRootView().apply {
+                    return requireNotNull(super.createRootView()).apply {
                         setBackgroundColor(Color.TRANSPARENT)
                     }
                 }
