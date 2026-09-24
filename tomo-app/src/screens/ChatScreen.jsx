@@ -15,6 +15,7 @@ import ChatBubble from '../components/ChatBubble.jsx';
 import ActionConfirmationCard from '../components/ActionConfirmationCard.jsx';
 import MicButton from '../components/MicButton.jsx';
 import TomoAvatar from '../components/TomoAvatar.jsx';
+import { COLORS, RADII, SHADOWS } from '../constants/theme.js';
 import { useChat } from '../hooks/useChat.js';
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder.js';
 import { useAppStore } from '../store/useAppStore.js';
@@ -26,6 +27,8 @@ import { useAppStore } from '../store/useAppStore.js';
 export default function ChatScreen({ navigation, route }) {
   const isOverlay = Boolean(route?.params?.isOverlay);
   const onboarded = useAppStore((state) => state.onboarded);
+  const evolutionStage = useAppStore((state) => state.evolutionStage);
+  const equippedCosmetic = useAppStore((state) => state.equippedCosmetic);
   const [draft, setDraft] = useState('');
 
   // Bảo vệ: Nếu chưa hoàn tất onboarding thì tự động quay về Onboarding
@@ -90,6 +93,10 @@ export default function ChatScreen({ navigation, route }) {
     navigation?.navigate?.('Settings');
   };
 
+  const handleOpenDashboard = () => {
+    navigation?.navigate?.('Dashboard');
+  };
+
   const handleCloseOverlay = () => {
     if (navigation?.canGoBack?.()) {
       navigation.goBack();
@@ -118,7 +125,11 @@ export default function ChatScreen({ navigation, route }) {
           {/* Header nổi với Avatar Tomo và Nút Đóng */}
           <View style={styles.overlayHeader}>
             <View style={styles.overlayHeaderSpacer} />
-            <TomoAvatar animationState={animationState} />
+            <TomoAvatar
+              animationState={animationState}
+              stage={evolutionStage}
+              cosmetic={equippedCosmetic}
+            />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Đóng"
@@ -208,15 +219,28 @@ export default function ChatScreen({ navigation, route }) {
       style={styles.container}
     >
       <View style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={handleOpenSettings}
-          style={({ pressed }) => [styles.headerLeftButton, pressed && styles.pressed]}
-        >
-          <Text style={styles.headerButtonText}>⚙️ Cài đặt</Text>
-        </Pressable>
+        <View style={styles.headerLeftGroup}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleOpenDashboard}
+            style={({ pressed }) => [styles.headerButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.headerButtonText}>☀️ Nhịp</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleOpenSettings}
+            style={({ pressed }) => [styles.headerButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.headerButtonText}>⚙️ Cài đặt</Text>
+          </Pressable>
+        </View>
 
-        <TomoAvatar animationState={animationState} />
+        <TomoAvatar
+          animationState={animationState}
+          stage={evolutionStage}
+          cosmetic={equippedCosmetic}
+        />
 
         <Pressable
           accessibilityRole="button"
@@ -298,8 +322,8 @@ export default function ChatScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbfbff',
-    paddingTop: 28,
+    backgroundColor: COLORS.canvas,
+    paddingTop: 32,
   },
   overlayRoot: {
     flex: 1,
@@ -316,8 +340,8 @@ const styles = StyleSheet.create({
   overlayCard: {
     width: '94%',
     height: '82%',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
-    borderRadius: 24,
+    backgroundColor: 'rgba(255, 254, 251, 0.98)',
+    borderRadius: 28,
     overflow: 'hidden',
     elevation: 16,
     shadowColor: '#000',
@@ -325,7 +349,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(107, 92, 255, 0.25)',
+    borderColor: 'rgba(49, 94, 82, 0.22)',
   },
   overlayHeader: {
     flexDirection: 'row',
@@ -333,24 +357,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: '#f6f5ff',
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#ebe8ff',
+    borderBottomColor: COLORS.border,
   },
   overlayHeaderSpacer: {
     width: 60,
   },
   overlayCloseButton: {
-    backgroundColor: '#ede9fe',
-    borderRadius: 14,
+    backgroundColor: COLORS.primarySoft,
+    borderRadius: RADII.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#ddd6fe',
+    borderColor: '#BDD1C8',
   },
   overlayCloseButtonText: {
     fontSize: 12,
-    color: '#5b21b6',
+    color: COLORS.primaryDark,
     fontWeight: '700',
   },
   overlayList: {
@@ -359,11 +383,11 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   listContainer: { flex: 1 },
-  list: { paddingHorizontal: 14, paddingBottom: 12 },
-  error: { color: '#a33', marginHorizontal: 16, marginBottom: 8 },
+  list: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 12 },
+  error: { color: COLORS.danger, marginHorizontal: 16, marginBottom: 8 },
   toast: {
     alignSelf: 'center',
-    backgroundColor: '#2225',
+    backgroundColor: COLORS.primaryDark,
     borderRadius: 20,
     marginBottom: 8,
     paddingHorizontal: 14,
@@ -371,66 +395,79 @@ const styles = StyleSheet.create({
   },
   toastText: { color: '#fff', fontWeight: '600' },
   composer: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.border,
+    borderRadius: 22,
     borderTopWidth: 1,
-    borderColor: '#ddd',
-    padding: 10,
+    marginBottom: 12,
+    marginHorizontal: 12,
+    padding: 9,
     flexDirection: 'row',
+    ...SHADOWS.floating,
   },
   input: {
     flex: 1,
     maxHeight: 120,
     minHeight: 42,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 20,
+    backgroundColor: '#F3F1EC',
+    borderColor: '#E7E1D7',
+    borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginRight: 8,
   },
   sendButton: {
-    backgroundColor: '#6b5cff',
-    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 16,
     justifyContent: 'center',
     paddingHorizontal: 18,
     minHeight: 42,
   },
   pressed: { opacity: 0.8 },
-  disabled: { backgroundColor: '#aaa' },
+  disabled: { backgroundColor: '#AEB7B3' },
   sendText: { color: '#fff', fontWeight: '700' },
   header: {
     alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderBottomColor: COLORS.border,
+    borderBottomWidth: 1,
     justifyContent: 'center',
     position: 'relative',
-    paddingBottom: 4,
-    minHeight: 52,
+    paddingBottom: 8,
+    minHeight: 78,
   },
-  headerLeftButton: {
+  headerLeftGroup: {
     position: 'absolute',
     left: 14,
-    top: 10,
-    backgroundColor: '#eee',
-    borderRadius: 12,
+    top: 20,
+    flexDirection: 'row',
+    gap: 6,
+  },
+  headerButton: {
+    backgroundColor: COLORS.primarySoft,
+    borderRadius: RADII.pill,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#C7D9D1',
   },
   headerButtonText: {
     fontSize: 11,
-    color: '#333',
-    fontWeight: '600',
+    color: COLORS.primaryDark,
+    fontWeight: '800',
   },
   inspectButton: {
     position: 'absolute',
     right: 14,
-    top: 10,
-    backgroundColor: '#eee',
-    borderRadius: 12,
+    top: 20,
+    backgroundColor: COLORS.surfaceMuted,
+    borderRadius: RADII.pill,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: COLORS.border,
   },
   inspectButtonText: {
     fontSize: 11,

@@ -14,6 +14,7 @@ import {
 import { getRecordingPermissionsAsync } from 'expo-audio';
 import * as Notifications from 'expo-notifications';
 
+import { COLORS, RADII, SHADOWS } from '../constants/theme.js';
 import {
   isOverlayPermissionGranted,
   openBatteryOptimizationSettings,
@@ -201,7 +202,7 @@ export default function SettingsScreen({ navigation }) {
               value={Boolean(isOverlayEnabled)}
               onValueChange={handleToggleOverlay}
               disabled={isTogglingOverlay}
-              trackColor={{ false: '#ddd', true: '#6b5cff' }}
+              trackColor={{ false: '#D8D4CB', true: COLORS.primary }}
               thumbColor="#fff"
             />
           </View>
@@ -247,7 +248,7 @@ export default function SettingsScreen({ navigation }) {
               style={({ pressed }) => [styles.refreshButton, pressed && styles.pressed]}
             >
               {checkingPermissions ? (
-                <ActivityIndicator size="small" color="#6b5cff" />
+                <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
                 <Text style={styles.refreshButtonText}>Kiểm tra lại</Text>
               )}
@@ -285,47 +286,48 @@ export default function SettingsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbfbff',
-    paddingTop: 36,
+    backgroundColor: COLORS.canvas,
+    paddingTop: 38,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    paddingHorizontal: 18,
+    paddingBottom: 16,
   },
   backButton: {
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: '#f0f0f5',
-    borderRadius: 8,
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.border,
+    borderRadius: RADII.pill,
+    borderWidth: 1,
   },
   backButtonText: {
     fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
+    color: COLORS.primary,
+    fontWeight: '800',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#222',
+    fontSize: 20,
+    fontWeight: '900',
+    color: COLORS.ink,
   },
   headerSpacer: {
     width: 60,
   },
   content: {
-    padding: 16,
+    padding: 18,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 13,
     borderWidth: 1,
-    borderColor: '#eaeaea',
+    borderColor: COLORS.border,
+    ...SHADOWS.card,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -335,8 +337,8 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: '900',
+    color: COLORS.ink,
     marginBottom: 10,
   },
   row: {
@@ -351,11 +353,11 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#222',
+    color: COLORS.ink,
   },
   settingDescription: {
     fontSize: 13,
-    color: '#666',
+    color: COLORS.inkMuted,
     marginTop: 2,
     lineHeight: 18,
   },
@@ -386,23 +388,23 @@ const styles = StyleSheet.create({
   },
   batteryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#ede9fe',
-    borderRadius: 8,
+    backgroundColor: COLORS.primarySoft,
+    borderRadius: 11,
     marginTop: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  batteryButtonText: { color: '#5b21b6', fontSize: 13, fontWeight: '700' },
+  batteryButtonText: { color: COLORS.primary, fontSize: 13, fontWeight: '800' },
   refreshButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
-    backgroundColor: '#f0f0ff',
-    borderRadius: 6,
+    backgroundColor: COLORS.primarySoft,
+    borderRadius: 9,
   },
   refreshButtonText: {
     fontSize: 12,
-    color: '#6b5cff',
-    fontWeight: '600',
+    color: COLORS.primary,
+    fontWeight: '800',
   },
   permissionItem: {
     flexDirection: 'row',
@@ -414,7 +416,7 @@ const styles = StyleSheet.create({
   },
   permissionName: {
     fontSize: 13,
-    color: '#444',
+    color: COLORS.ink,
     flex: 1,
     paddingRight: 8,
   },
@@ -423,16 +425,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: RADII.pill,
     overflow: 'hidden',
   },
   granted: {
-    backgroundColor: '#e6f7ff',
-    color: '#0958d9',
+    backgroundColor: COLORS.primarySoft,
+    color: COLORS.primary,
   },
   denied: {
-    backgroundColor: '#fff1f0',
-    color: '#cf1322',
+    backgroundColor: '#F8DEDA',
+    color: COLORS.danger,
   },
   pressed: {
     opacity: 0.7,

@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { COLORS, SHADOWS } from '../constants/theme.js';
+
 function describeAction(action) {
   if (action?.type === 'propose_schedule') {
     const date = new Date(action.params?.datetime_iso);
@@ -55,13 +57,14 @@ export default function ActionConfirmationCard({ action, disabled, onConfirm, on
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff8dc',
-    borderColor: '#e4c95f',
-    borderRadius: 16,
+    backgroundColor: '#FFF9E9',
+    borderColor: '#E8CF91',
+    borderRadius: 18,
     borderWidth: 1,
     marginHorizontal: 14,
     marginBottom: 10,
     padding: 12,
+    ...SHADOWS.card,
   },
   title: { color: '#342d13', fontSize: 15, fontWeight: '700' },
   detail: { color: '#63572a', marginTop: 4 },
@@ -69,8 +72,8 @@ const styles = StyleSheet.create({
   cancelButton: { borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8 },
   cancelText: { color: '#665d3a', fontWeight: '600' },
   confirmButton: {
-    backgroundColor: '#6b5cff',
-    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },

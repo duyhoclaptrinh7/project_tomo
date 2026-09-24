@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { COLORS, SHADOWS } from '../constants/theme.js';
+
 /** Bubble dumb: mọi logic request/retry nằm trong useChat và ChatScreen. */
 export default function ChatBubble({ role, text, timestamp, failed = false, onRetry }) {
   const isUser = role === 'user';
@@ -19,14 +21,20 @@ export default function ChatBubble({ role, text, timestamp, failed = false, onRe
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', marginBottom: 10 },
+  row: { flexDirection: 'row', marginBottom: 12 },
   userRow: { justifyContent: 'flex-end' },
   tomoRow: { justifyContent: 'flex-start' },
-  bubble: { maxWidth: '78%', borderRadius: 18, padding: 12 },
-  userBubble: { backgroundColor: '#6b5cff' },
-  tomoBubble: { backgroundColor: '#eef0ff' },
-  userText: { color: '#fff', fontSize: 16 },
-  tomoText: { color: '#1d1f33', fontSize: 16 },
-  timestamp: { marginTop: 4, fontSize: 11, opacity: 0.65 },
-  retry: { color: '#a33', fontWeight: '600', marginTop: 6 },
+  bubble: { maxWidth: '82%', borderRadius: 19, paddingHorizontal: 14, paddingVertical: 11 },
+  userBubble: { backgroundColor: COLORS.primary, borderBottomRightRadius: 6, ...SHADOWS.card },
+  tomoBubble: {
+    backgroundColor: COLORS.surface,
+    borderBottomLeftRadius: 6,
+    borderColor: COLORS.border,
+    borderWidth: 1,
+    ...SHADOWS.card,
+  },
+  userText: { color: COLORS.white, fontSize: 15, lineHeight: 21 },
+  tomoText: { color: COLORS.ink, fontSize: 15, lineHeight: 21 },
+  timestamp: { marginTop: 5, fontSize: 10, opacity: 0.6 },
+  retry: { color: COLORS.danger, fontWeight: '700', marginTop: 7 },
 });

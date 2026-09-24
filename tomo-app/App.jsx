@@ -5,8 +5,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
 import ChatScreen from './src/screens/ChatScreen.jsx';
+import CommunityScreen from './src/screens/CommunityScreen.jsx';
+import DashboardScreen from './src/screens/DashboardScreen.jsx';
+import EvolutionScreen from './src/screens/EvolutionScreen.jsx';
 import OnboardingScreen from './src/screens/OnboardingScreen.jsx';
+import ReflectionScreen from './src/screens/ReflectionScreen.jsx';
 import SettingsScreen from './src/screens/SettingsScreen.jsx';
+import StudyPlannerScreen from './src/screens/StudyPlannerScreen.jsx';
+import { COLORS } from './src/constants/theme.js';
 import { useAppStore } from './src/store/useAppStore.js';
 
 const Stack = createNativeStackNavigator();
@@ -32,7 +38,7 @@ export default function App(props) {
   if (!isHydrated) {
     return (
       <View style={[styles.loadingContainer, isOverlayMode && styles.transparentBg]}>
-        <ActivityIndicator size="large" color="#6b5cff" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -60,7 +66,7 @@ export default function App(props) {
           screenOptions={{
             headerShown: false,
             contentStyle: {
-              backgroundColor: isOverlayMode ? 'transparent' : '#fbfbff',
+              backgroundColor: isOverlayMode ? 'transparent' : COLORS.canvas,
             },
           }}
         >
@@ -70,6 +76,11 @@ export default function App(props) {
             component={ChatScreen}
             initialParams={{ isOverlay: isOverlayMode }}
           />
+          <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen name="StudyPlanner" component={StudyPlannerScreen} />
+          <Stack.Screen name="Community" component={CommunityScreen} />
+          <Stack.Screen name="Reflection" component={ReflectionScreen} />
+          <Stack.Screen name="Evolution" component={EvolutionScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
@@ -81,7 +92,7 @@ export default function App(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbfbff',
+    backgroundColor: COLORS.canvas,
   },
   overlayRootContainer: {
     flex: 1,
@@ -92,7 +103,7 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#fbfbff',
+    backgroundColor: COLORS.canvas,
     justifyContent: 'center',
     alignItems: 'center',
   },

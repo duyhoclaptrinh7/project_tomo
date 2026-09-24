@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { COLORS } from '../constants/theme.js';
+
 export default function MicButton({ isRecording, disabled, onPressIn, onPressOut }) {
   const label = isRecording ? 'Đang ghi âm, thả để gửi' : 'Nhấn giữ để nói';
 
@@ -26,17 +28,17 @@ export default function MicButton({ isRecording, disabled, onPressIn, onPressOut
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    backgroundColor: '#ede9fe',
-    borderColor: '#c4b5fd',
-    borderRadius: 21,
+    backgroundColor: COLORS.primarySoft,
+    borderColor: '#BCD1C7',
+    borderRadius: 16,
     borderWidth: 1,
     height: 42,
     justifyContent: 'center',
     marginRight: 8,
     width: 42,
   },
-  recording: { backgroundColor: '#fee2e2', borderColor: '#ef4444' },
+  recording: { backgroundColor: '#F8DEDA', borderColor: COLORS.danger },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.45 },
-  icon: { color: '#dc2626', fontSize: 18 },
+  icon: { color: COLORS.primary, fontSize: 17 },
 });

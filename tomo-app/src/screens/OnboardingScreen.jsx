@@ -15,6 +15,8 @@ import {
 import { getRecordingPermissionsAsync, requestRecordingPermissionsAsync } from 'expo-audio';
 import * as Notifications from 'expo-notifications';
 
+import TomoAvatar from '../components/TomoAvatar.jsx';
+import { COLORS, RADII, SHADOWS } from '../constants/theme.js';
 import {
   isOverlayPermissionGranted,
   openOverlaySettings,
@@ -281,7 +283,7 @@ export default function OnboardingScreen({ navigation }) {
         {/* Bước 1: Chào mừng */}
         {step === 1 && (
           <View style={styles.stepContainer}>
-            <Text style={styles.avatarPlaceholder}>👋 💙</Text>
+            <TomoAvatar animationState="happy" size="large" />
             <Text style={styles.title}>Chào bạn, tớ là Tomo!</Text>
             <Text style={styles.description}>
               Tomo là người bạn đồng hành AI sống cùng bạn trên điện thoại, sẵn sàng lắng nghe chia
@@ -506,7 +508,7 @@ export default function OnboardingScreen({ navigation }) {
         {/* Bước 6: Tổng kết & Hoàn tất */}
         {step === 6 && (
           <View style={styles.stepContainer}>
-            <Text style={styles.avatarPlaceholder}>🎉</Text>
+            <TomoAvatar animationState="celebrating" size="large" />
             <Text style={styles.title}>Sẵn sàng đồng hành cùng {userName}!</Text>
             <Text style={styles.description}>
               Dưới đây là các quyền bạn đã thiết lập (bạn có thể thay đổi bất kỳ lúc nào trong Cài
@@ -571,56 +573,67 @@ export default function OnboardingScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fbfbff',
-    paddingTop: 40,
+    backgroundColor: COLORS.canvas,
+    paddingTop: 44,
   },
   topIndicator: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: 24,
+    marginBottom: 18,
   },
   stepText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6b5cff',
-    marginBottom: 6,
+    color: COLORS.primary,
+    marginBottom: 8,
     textTransform: 'uppercase',
   },
   progressBar: {
-    height: 6,
-    backgroundColor: '#eee',
-    borderRadius: 3,
+    height: 7,
+    backgroundColor: '#DED9CE',
+    borderRadius: RADII.pill,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#6b5cff',
-    borderRadius: 3,
+    backgroundColor: COLORS.accent,
+    borderRadius: RADII.pill,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingBottom: 48,
   },
   stepContainer: {
     alignItems: 'center',
-    paddingVertical: 20,
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.border,
+    borderRadius: 28,
+    borderWidth: 1,
+    paddingHorizontal: 22,
+    paddingVertical: 28,
+    ...SHADOWS.card,
   },
   avatarPlaceholder: {
-    fontSize: 48,
-    marginBottom: 16,
+    backgroundColor: COLORS.primarySoft,
+    borderRadius: 38,
+    fontSize: 38,
+    marginBottom: 20,
+    overflow: 'hidden',
+    padding: 15,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#222',
+    fontSize: 25,
+    fontWeight: '900',
+    color: COLORS.ink,
+    lineHeight: 31,
     textAlign: 'center',
     marginBottom: 12,
   },
   description: {
-    fontSize: 15,
-    color: '#666',
+    fontSize: 14,
+    color: COLORS.inkMuted,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
+    lineHeight: 21,
+    marginBottom: 26,
   },
   inputGroup: {
     width: '100%',
@@ -628,38 +641,38 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#444',
+    fontWeight: '700',
+    color: COLORS.ink,
     marginBottom: 6,
   },
   textInput: {
     width: '100%',
     height: 48,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
+    borderColor: COLORS.border,
+    borderRadius: 13,
     paddingHorizontal: 14,
     fontSize: 15,
-    backgroundColor: '#fff',
-    color: '#222',
+    backgroundColor: '#F9F7F2',
+    color: COLORS.ink,
   },
   tipBox: {
-    backgroundColor: '#f0f4ff',
-    borderRadius: 10,
+    backgroundColor: COLORS.primarySoft,
+    borderRadius: 14,
     padding: 12,
     marginBottom: 24,
     width: '100%',
   },
   tipText: {
     fontSize: 13,
-    color: '#3d5afe',
+    color: COLORS.primaryDark,
     lineHeight: 18,
   },
   primaryButton: {
     width: '100%',
     height: 50,
-    backgroundColor: '#6b5cff',
-    borderRadius: 25,
+    backgroundColor: COLORS.primary,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
@@ -677,17 +690,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#888',
+    color: COLORS.inkMuted,
     fontSize: 14,
     fontWeight: '600',
   },
   summaryCard: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#F9F7F2',
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: COLORS.border,
     marginBottom: 24,
   },
   summaryRow: {
@@ -700,7 +713,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#444',
+    color: COLORS.ink,
   },
   summaryStatus: {
     fontSize: 13,
@@ -710,21 +723,21 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   granted: {
-    backgroundColor: '#e6f7ff',
-    color: '#0958d9',
+    backgroundColor: COLORS.primarySoft,
+    color: COLORS.primary,
   },
   denied: {
-    backgroundColor: '#fff1f0',
-    color: '#cf1322',
+    backgroundColor: '#F8DEDA',
+    color: COLORS.danger,
   },
   disabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#AFB8B4',
   },
   pressed: {
     opacity: 0.8,
   },
   feedbackBox: {
-    borderRadius: 10,
+    borderRadius: 14,
     padding: 12,
     marginBottom: 16,
     width: '100%',
@@ -752,8 +765,8 @@ const styles = StyleSheet.create({
   reopenButton: {
     width: '100%',
     height: 40,
-    backgroundColor: '#f0f0f5',
-    borderRadius: 20,
+    backgroundColor: COLORS.surfaceMuted,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,

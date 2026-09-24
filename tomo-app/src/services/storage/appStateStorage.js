@@ -9,6 +9,20 @@ export const DEFAULT_APP_STATE = Object.freeze({
   isOverlayEnabled: false,
   isFocusSessionActive: false,
   isFocusRemindersEnabled: false,
+  moodEntries: [],
+  stressEntries: [],
+  focusSessions: [],
+  completedMicroActions: [],
+  studySubjects: [],
+  studyCommitments: [],
+  studyPlan: [],
+  testResults: [],
+  coworkingSessions: [],
+  encouragementCount: 0,
+  effortBalance: 0,
+  ownedCosmetics: ['basic-shirt'],
+  equippedCosmetic: 'basic-shirt',
+  evolutionMilestones: [],
 });
 
 function stateFile() {
