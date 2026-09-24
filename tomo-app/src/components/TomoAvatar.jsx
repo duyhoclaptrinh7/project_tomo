@@ -43,7 +43,7 @@ export default function TomoAvatar({
   const isLarge = size === 'large';
 
   return (
-    <View style={styles.avatar}>
+    <View style={[styles.avatar, isLarge && styles.avatarLarge]}>
       <View
         accessibilityLabel={`Tomo giai đoạn ${stage}`}
         style={[styles.mascotFrame, isLarge ? styles.mascotLarge : styles.mascotNormal]}
@@ -69,6 +69,7 @@ export default function TomoAvatar({
 
 const styles = StyleSheet.create({
   avatar: { alignItems: 'center', padding: 8 },
+  avatarLarge: { paddingHorizontal: 12, paddingTop: 10 },
   mascotFrame: { position: 'relative' },
   mascotNormal: { height: 54, width: 54 },
   mascotLarge: { height: 94, width: 94 },
