@@ -37,10 +37,11 @@ class OverlayService : Service() {
     private lateinit var windowManager: WindowManager
     private var chatHeadView: FrameLayout? = null
     private var closeTargetView: FrameLayout? = null
-    private var mouthView: TextView? = null
-    private var focusView: TextView? = null
+    private var mascotImageView: ImageView? = null
     private var reminderView: TextView? = null
-    private var mouthAnimator: ValueAnimator? = null
+    private var mascotAnimator: ValueAnimator? = null
+    private var speaking = false
+    private var focused = false
 
     private lateinit var chatHeadParams: WindowManager.LayoutParams
     private lateinit var closeTargetParams: WindowManager.LayoutParams
@@ -233,50 +234,18 @@ class OverlayService : Service() {
 
             val imageView = ImageView(this@OverlayService).apply {
                 try {
-                    setImageResource(R.drawable.tomo_chathead_avatar)
+                    setImageResource(R.drawable.tomo_mascot_idle)
                 } catch (e: Exception) {
                     setImageResource(R.mipmap.ic_launcher_round)
                 }
                 scaleType = ImageView.ScaleType.FIT_CENTER
             }
+            mascotImageView = imageView
             addView(
                 imageView,
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT
-                )
-            )
-
-            mouthView = TextView(this@OverlayService).apply {
-                text = "●"
-                textSize = 11f
-                setTextColor(Color.WHITE)
-                gravity = Gravity.CENTER
-                visibility = View.GONE
-            }
-            addView(
-                mouthView,
-                FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    (28 * density).toInt(),
-                    Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                ).apply {
-                    bottomMargin = (8 * density).toInt()
-                }
-            )
-
-            focusView = TextView(this@OverlayService).apply {
-                text = "🎯"
-                textSize = 13f
-                gravity = Gravity.CENTER
-                visibility = View.GONE
-            }
-            addView(
-                focusView,
-                FrameLayout.LayoutParams(
-                    (26 * density).toInt(),
-                    (26 * density).toInt(),
-                    Gravity.TOP or Gravity.END
                 )
             )
         }
@@ -429,29 +398,42 @@ class OverlayService : Service() {
     }
 
     private fun updateSpeakingAnimation(isSpeaking: Boolean) {
-        mouthAnimator?.cancel()
-        mouthAnimator = null
+        speaking = isSpeaking
+        mascotAnimator?.cancel()
+        mascotAnimator = null
+        mascotImageView?.scaleX = 1f
+        mascotImageView?.scaleY = 1f
+        updateMascotImage()
 
         if (!isSpeaking) {
-            mouthView?.visibility = View.GONE
-            mouthView?.scaleY = 1f
             return
         }
 
-        mouthView?.visibility = View.VISIBLE
-        mouthAnimator = ValueAnimator.ofFloat(0.35f, 1f).apply {
+        mascotAnimator = ValueAnimator.ofFloat(0.94f, 1f).apply {
             duration = 180
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
             addUpdateListener { animation ->
-                mouthView?.scaleY = animation.animatedValue as Float
+                val scale = animation.animatedValue as Float
+                mascotImageView?.scaleX = scale
+                mascotImageView?.scaleY = scale
             }
             start()
         }
     }
 
     private fun updateFocusedState(isFocused: Boolean) {
-        focusView?.visibility = if (isFocused) View.VISIBLE else View.GONE
+        focused = isFocused
+        updateMascotImage()
+    }
+
+    private fun updateMascotImage() {
+        val drawable = when {
+            speaking -> R.drawable.tomo_mascot_laugh
+            focused -> R.drawable.tomo_mascot_angry
+            else -> R.drawable.tomo_mascot_idle
+        }
+        mascotImageView?.setImageResource(drawable)
     }
 
     private fun showReminderBubble(message: String) {
@@ -503,10 +485,9 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         if (activeInstance === this) activeInstance = null
-        mouthAnimator?.cancel()
-        mouthAnimator = null
-        mouthView = null
-        focusView = null
+        mascotAnimator?.cancel()
+        mascotAnimator = null
+        mascotImageView = null
         reminderView?.let {
             try { windowManager.removeView(it) } catch (_: Exception) {}
         }

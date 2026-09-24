@@ -10,6 +10,7 @@ const createHostComponent = (name) => {
 
 const View = createHostComponent('View');
 const Text = createHostComponent('Text');
+const Image = createHostComponent('Image');
 const TextInput = React.forwardRef((props, ref) => {
   return React.createElement('TextInput', {
     ...props,
@@ -122,6 +123,7 @@ Switch.displayName = 'Switch';
 const Animated = {
   View,
   Text,
+  Image,
   ScrollView,
   createAnimatedComponent: (comp) => comp,
   Value: class {
@@ -196,6 +198,7 @@ StatusBar.setTranslucent = () => {};
 const ReactNativeMock = {
   View,
   Text,
+  Image,
   TextInput,
   Pressable,
   KeyboardAvoidingView,

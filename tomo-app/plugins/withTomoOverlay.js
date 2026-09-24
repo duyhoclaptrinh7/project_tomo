@@ -225,11 +225,20 @@ const withOverlayNativeFiles = (config) => {
         }
       }
 
-      // 2. Copy vector drawable asset của nhân vật Tomo
-      const srcAvatar = path.join(nativeSrcResDir, 'tomo_chathead_avatar.xml');
-      const destAvatar = path.join(resDrawableDir, 'tomo_chathead_avatar.xml');
-      if (fs.existsSync(srcAvatar)) {
-        fs.copyFileSync(srcAvatar, destAvatar);
+      // 2. Copy các ảnh cảm xúc dùng cho chat-head Tomo.
+      const mascotAssets = [
+        'tomo_mascot_idle.png',
+        'tomo_mascot_happy.png',
+        'tomo_mascot_laugh.png',
+        'tomo_mascot_sad.png',
+        'tomo_mascot_angry.png',
+      ];
+      for (const file of mascotAssets) {
+        const srcPath = path.join(nativeSrcResDir, file);
+        const destPath = path.join(resDrawableDir, file);
+        if (fs.existsSync(srcPath)) {
+          fs.copyFileSync(srcPath, destPath);
+        }
       }
 
       // 3. Đăng ký TomoReactPackage vào MainApplication.kt
