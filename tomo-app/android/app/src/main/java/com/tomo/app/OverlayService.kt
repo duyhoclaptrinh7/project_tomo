@@ -178,7 +178,7 @@ class OverlayService : Service() {
         closeTargetView = FrameLayout(this).apply {
             val bg = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#CC333333"))
+                setColor(Color.parseColor("#D963406E"))
                 setStroke((2 * resources.displayMetrics.density).toInt(), Color.WHITE)
             }
             background = bg
@@ -444,13 +444,13 @@ class OverlayService : Service() {
         val bubble = TextView(this).apply {
             text = message
             textSize = 14f
-            setTextColor(Color.parseColor("#302A55"))
+            setTextColor(Color.parseColor("#4D3545"))
             setPadding((14 * density).toInt(), (9 * density).toInt(), (14 * density).toInt(), (9 * density).toInt())
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = 16 * density
-                setColor(Color.parseColor("#FFF8DC"))
-                setStroke((1 * density).toInt(), Color.parseColor("#E4C95F"))
+                setColor(Color.parseColor("#FFF9F0"))
+                setStroke((1 * density).toInt(), Color.parseColor("#F4B28F"))
             }
         }
         val overlayType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

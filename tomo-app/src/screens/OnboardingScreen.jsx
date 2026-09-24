@@ -340,7 +340,7 @@ export default function OnboardingScreen({ navigation }) {
               ]}
             >
               {isProcessing ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={COLORS.white} />
               ) : (
                 <Text style={styles.primaryButtonText}>Tiếp tục</Text>
               )}
@@ -436,7 +436,7 @@ export default function OnboardingScreen({ navigation }) {
                   style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
                 >
                   {isProcessing ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={COLORS.white} />
                   ) : (
                     <Text style={styles.primaryButtonText}>Kiểm tra lại quyền</Text>
                   )}
@@ -459,7 +459,7 @@ export default function OnboardingScreen({ navigation }) {
                 style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
               >
                 {isProcessing ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={COLORS.white} />
                 ) : (
                   <Text style={styles.primaryButtonText}>Mở Cài đặt cấp quyền</Text>
                 )}
@@ -558,7 +558,7 @@ export default function OnboardingScreen({ navigation }) {
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
             >
               {isProcessing ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={COLORS.white} />
               ) : (
                 <Text style={styles.primaryButtonText}>Bắt đầu trò chuyện</Text>
               )}
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 7,
-    backgroundColor: '#DED9CE',
+    backgroundColor: COLORS.paperDeep,
     borderRadius: RADII.pill,
     overflow: 'hidden',
   },
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.surface,
     borderColor: COLORS.border,
-    borderRadius: 28,
+    borderRadius: 32,
     borderWidth: 1,
     paddingHorizontal: 22,
     paddingVertical: 28,
@@ -622,6 +622,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 25,
+    fontFamily: 'serif',
     fontWeight: '900',
     color: COLORS.ink,
     lineHeight: 31,
@@ -653,7 +654,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     paddingHorizontal: 14,
     fontSize: 15,
-    backgroundColor: '#F9F7F2',
+    backgroundColor: COLORS.paper,
     color: COLORS.ink,
   },
   tipBox: {
@@ -679,7 +680,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   primaryButtonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -696,7 +697,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     width: '100%',
-    backgroundColor: '#F9F7F2',
+    backgroundColor: COLORS.paper,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -709,7 +710,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f7f7f7',
+    borderBottomColor: COLORS.border,
   },
   summaryLabel: {
     fontSize: 14,
@@ -727,11 +728,11 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   denied: {
-    backgroundColor: '#F8DEDA',
+    backgroundColor: COLORS.pinkSoft,
     color: COLORS.danger,
   },
   disabled: {
-    backgroundColor: '#AFB8B4',
+    backgroundColor: COLORS.paperDeep,
   },
   pressed: {
     opacity: 0.8,
@@ -744,22 +745,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   feedbackWarning: {
-    backgroundColor: '#fffbe6',
-    borderColor: '#ffe58f',
+    backgroundColor: COLORS.peachSoft,
+    borderColor: COLORS.peach,
   },
   feedbackSuccess: {
-    backgroundColor: '#f6ffed',
-    borderColor: '#b7eb8f',
+    backgroundColor: COLORS.lavenderSoft,
+    borderColor: COLORS.lavender,
   },
   feedbackText: {
     fontSize: 13,
     lineHeight: 18,
   },
   feedbackWarningText: {
-    color: '#d46b08',
+    color: COLORS.brown,
   },
   feedbackSuccessText: {
-    color: '#389e0d',
+    color: COLORS.primaryDark,
     fontWeight: '600',
   },
   reopenButton: {
@@ -772,7 +773,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reopenButtonText: {
-    color: '#555',
+    color: COLORS.ink,
     fontSize: 14,
     fontWeight: '600',
   },

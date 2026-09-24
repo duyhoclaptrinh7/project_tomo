@@ -90,5 +90,5 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-12deg' }],
   },
   label: { color: COLORS.inkMuted, fontSize: 11, fontWeight: '600', marginTop: 6 },
-  labelInverted: { color: '#D7E4DF' },
+  labelInverted: { color: COLORS.lavenderSoft },
 });

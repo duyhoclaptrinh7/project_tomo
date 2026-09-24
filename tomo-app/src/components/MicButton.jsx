@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: COLORS.primarySoft,
-    borderColor: '#BCD1C7',
+    borderColor: COLORS.lavender,
     borderRadius: 16,
     borderWidth: 1,
     height: 42,
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     width: 42,
   },
-  recording: { backgroundColor: '#F8DEDA', borderColor: COLORS.danger },
+  recording: { backgroundColor: COLORS.pinkSoft, borderColor: COLORS.danger },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.45 },
   icon: { color: COLORS.primary, fontSize: 17 },

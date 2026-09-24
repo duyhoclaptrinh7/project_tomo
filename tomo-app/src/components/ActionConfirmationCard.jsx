@@ -57,26 +57,26 @@ export default function ActionConfirmationCard({ action, disabled, onConfirm, on
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFF9E9',
-    borderColor: '#E8CF91',
-    borderRadius: 18,
+    backgroundColor: COLORS.paper,
+    borderColor: COLORS.peach,
+    borderRadius: 20,
     borderWidth: 1,
     marginHorizontal: 14,
     marginBottom: 10,
     padding: 12,
     ...SHADOWS.card,
   },
-  title: { color: '#342d13', fontSize: 15, fontWeight: '700' },
-  detail: { color: '#63572a', marginTop: 4 },
+  title: { color: COLORS.ink, fontSize: 15, fontWeight: '700' },
+  detail: { color: COLORS.inkMuted, marginTop: 4 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10, gap: 8 },
   cancelButton: { borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8 },
-  cancelText: { color: '#665d3a', fontWeight: '600' },
+  cancelText: { color: COLORS.brown, fontWeight: '600' },
   confirmButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
-  confirmText: { color: '#fff', fontWeight: '700' },
+  confirmText: { color: COLORS.white, fontWeight: '700' },
   pressed: { opacity: 0.75 },
 });

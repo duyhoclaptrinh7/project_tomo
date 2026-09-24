@@ -25,9 +25,13 @@ const styles = StyleSheet.create({
   userRow: { justifyContent: 'flex-end' },
   tomoRow: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '82%', borderRadius: 19, paddingHorizontal: 14, paddingVertical: 11 },
-  userBubble: { backgroundColor: COLORS.primary, borderBottomRightRadius: 6, ...SHADOWS.card },
+  userBubble: {
+    backgroundColor: COLORS.primary,
+    borderBottomRightRadius: 6,
+    ...SHADOWS.card,
+  },
   tomoBubble: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.paper,
     borderBottomLeftRadius: 6,
     borderColor: COLORS.border,
     borderWidth: 1,

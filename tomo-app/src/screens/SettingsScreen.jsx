@@ -202,8 +202,8 @@ export default function SettingsScreen({ navigation }) {
               value={Boolean(isOverlayEnabled)}
               onValueChange={handleToggleOverlay}
               disabled={isTogglingOverlay}
-              trackColor={{ false: '#D8D4CB', true: COLORS.primary }}
-              thumbColor="#fff"
+              trackColor={{ false: COLORS.paperDeep, true: COLORS.primary }}
+              thumbColor={COLORS.white}
             />
           </View>
           {!overlayGranted && (
@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
+    fontFamily: 'serif',
     fontWeight: '900',
     color: COLORS.ink,
   },
@@ -363,20 +364,20 @@ const styles = StyleSheet.create({
   },
   warningBox: {
     marginTop: 12,
-    backgroundColor: '#fff7e6',
-    borderRadius: 8,
+    backgroundColor: COLORS.peachSoft,
+    borderRadius: RADII.small,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#ffe58f',
+    borderColor: COLORS.peach,
   },
   warningText: {
     fontSize: 12,
-    color: '#d46b08',
+    color: COLORS.brown,
     marginBottom: 6,
   },
   linkButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#ffe58f',
+    backgroundColor: COLORS.peach,
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -384,7 +385,7 @@ const styles = StyleSheet.create({
   linkButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#873800',
+    color: COLORS.ink,
   },
   batteryButton: {
     alignSelf: 'flex-start',
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: COLORS.border,
   },
   permissionName: {
     fontSize: 13,
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   denied: {
-    backgroundColor: '#F8DEDA',
+    backgroundColor: COLORS.pinkSoft,
     color: COLORS.danger,
   },
   pressed: {
